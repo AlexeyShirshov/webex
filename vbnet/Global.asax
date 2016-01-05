@@ -5,31 +5,31 @@
 <%@ Import namespace="System.Reflection" %>
 <%@ Import namespace="System.IO" %>
 <%@ Import namespace="System.ComponentModel.Composition" %>
+<%@ Import namespace="WebEx.Core" %>
 
 <script runat="server">
 
     void Application_Start(object sender, EventArgs e) 
     {
         AppConfig.RegisterRoutes(RouteTable.Routes);
-        AppConfig.RegisterPlugins(this);
-        this.Application[WebExHtmlExtensions.webexViewExtension] = "vbhtml";
-        
-        var catalog = new AggregateCatalog();
+        ModulesCatalog.RegisterModules(Application, "vbhtml");
+        //this.Application[WebExHtmlExtensions.webexViewExtension] = "vbhtml";
 
-        catalog.Catalogs.Add(new DirectoryCatalog(Server.MapPath("~/Bin"), "*webexmodule*"));
-    	catalog.Catalogs.Add(new DirectoryCatalog(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)));
+        //var catalog = new AggregateCatalog();
 
-        var container = new CompositionContainer(catalog);
+        //catalog.Catalogs.Add(new DirectoryCatalog(Server.MapPath("~/Bin"), "*webexmodule*"));
+        //catalog.Catalogs.Add(new AssemblyCatalog(Assembly.GetExecutingAssembly()));
 
-        try 
-        {
-	        container.ComposeParts(AppConfig.PluginsRegistry);
-        }
-        catch (Exception ex) 
-        {
-	        
-        }
+        //var container = new CompositionContainer(catalog);
 
+        //try
+        //{
+        //    container.ComposeParts(AppConfig.ModulesCatalog);
+        //}
+        //catch (Exception ex)
+        //{
+
+        //}
     }
     
     void Application_End(object sender, EventArgs e) 

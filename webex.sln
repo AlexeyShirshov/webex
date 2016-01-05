@@ -1,0 +1,82 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "csharp", "http://localhost:33926", "{C56753A6-1DB3-429F-8000-A96AAE068D51}"
+	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.1"
+		ProjectReferences = "{343b47fe-aef1-4d22-8586-88020c3279db}|WebEx.Core.dll;{90fbb6a6-d4d3-4a4f-88cc-6d1352538d14}|JQueryWebExModule.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_33926"
+		Debug.AspNetCompiler.PhysicalPath = "webex\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_33926\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_33926"
+		Release.AspNetCompiler.PhysicalPath = "webex\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_33926\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		SlnRelativePath = "webex\"
+		DefaultWebSiteLanguage = "Visual C#"
+	EndProjectSection
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "vbnet", "http://localhost:39234", "{8275D2D3-574A-469D-933D-BA6CC90A1B0E}"
+	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.1"
+		ProjectReferences = "{343b47fe-aef1-4d22-8586-88020c3279db}|WebEx.Core.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_39234"
+		Debug.AspNetCompiler.PhysicalPath = "vbnet\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_39234\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_39234"
+		Release.AspNetCompiler.PhysicalPath = "vbnet\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_39234\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		SlnRelativePath = "vbnet\"
+		DefaultWebSiteLanguage = "Visual Basic"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebEx.Core", "WebEx.Core\WebEx.Core.csproj", "{343B47FE-AEF1-4D22-8586-88020C3279DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JQueryWebExModule", "JQueryWebExModule\JQueryWebExModule.csproj", "{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C56753A6-1DB3-429F-8000-A96AAE068D51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C56753A6-1DB3-429F-8000-A96AAE068D51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C56753A6-1DB3-429F-8000-A96AAE068D51}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{C56753A6-1DB3-429F-8000-A96AAE068D51}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{8275D2D3-574A-469D-933D-BA6CC90A1B0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8275D2D3-574A-469D-933D-BA6CC90A1B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8275D2D3-574A-469D-933D-BA6CC90A1B0E}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{8275D2D3-574A-469D-933D-BA6CC90A1B0E}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{343B47FE-AEF1-4D22-8586-88020C3279DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{343B47FE-AEF1-4D22-8586-88020C3279DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{343B47FE-AEF1-4D22-8586-88020C3279DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{343B47FE-AEF1-4D22-8586-88020C3279DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

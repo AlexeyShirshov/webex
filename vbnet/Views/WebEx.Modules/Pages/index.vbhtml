@@ -1,3 +1,5 @@
 ﻿@modeltype PagesModule.Page
 
-@Model.Title
+<p>
+    @Model.Title
+</p>

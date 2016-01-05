@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Web
 Imports System.Web.Mvc
+Imports WebEx.Core
 
 ''' <summary>
 ''' Summary description for WebExController
@@ -16,8 +17,7 @@ Public Class DefaultController
     End Sub
 
     Public Function index(Optional page As String = "", Optional id As String = "") As ActionResult
-        Dim model As New WebExModel()
-        model.Load(Me, page, id)
-        Return View(model)
+        LoadModules(page, id)
+        Return View()
     End Function
 End Class

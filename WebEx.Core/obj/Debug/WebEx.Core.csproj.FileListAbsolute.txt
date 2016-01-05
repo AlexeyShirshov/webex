@@ -1,4 +1,3 @@
-F:\projects\webex\WebEx.Core\obj\Debug\WebEx.Core.csprojResolveAssemblyReference.cache
 F:\projects\webex\WebEx.Core\bin\Debug\WebEx.Core.dll
 F:\projects\webex\WebEx.Core\bin\Debug\WebEx.Core.pdb
 F:\projects\webex\WebEx.Core\bin\Debug\Microsoft.Web.Infrastructure.dll
@@ -16,3 +15,4 @@ F:\projects\webex\WebEx.Core\bin\Debug\System.Web.WebPages.Deployment.xml
 F:\projects\webex\WebEx.Core\bin\Debug\System.Web.WebPages.Razor.xml
 F:\projects\webex\WebEx.Core\obj\Debug\WebEx.Core.dll
 F:\projects\webex\WebEx.Core\obj\Debug\WebEx.Core.pdb
+F:\projects\webex\WebEx.Core\obj\Debug\WebEx.Core.csprojResolveAssemblyReference.cache
