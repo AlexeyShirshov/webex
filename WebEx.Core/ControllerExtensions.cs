@@ -8,7 +8,7 @@ using System.Web.Mvc;
 
 namespace WebEx.Core
 {
-    public static class ControllerExtensions
+    public static class WebExControllerExtensions
     {
         public static IModule LoadModule(this Controller ctrl, string type, params object[] args)
         {
@@ -36,21 +36,24 @@ namespace WebEx.Core
                 {
                     r = Activator.CreateInstance(type) as IModule;
                 }
-                else if (args != null && args.Count() > 0)
+                else 
                 {
                     var params2Call = new object[methodParams.Count()];
                     int j = 0;
                     for (int i = 0; i < params2Call.Length; i++)
                     {
                         var mtype = methodParams[i].ParameterType;
-                        var arg = args[j];
+                        object arg = null;
+                        if (args != null && args.Length > j)
+                            arg = args[j];
 
                         if (arg == null)
                         {
                             if (typeof(Controller).IsAssignableFrom(mtype))
                                 params2Call[i] = ctrl;
 
-                            j++;
+                            if (args != null && args.Length > j)
+                                j++;
                         }
                         else
                         {
@@ -82,7 +85,7 @@ namespace WebEx.Core
 
             if (r != null)
             {
-                ModuleExtensions.RegisterModule(ctrl.ViewData, type, r, alias);
+                WebExModuleExtensions.RegisterModule(ctrl.ViewData, type, r, alias);
             }
 
             return r;
@@ -99,7 +102,7 @@ namespace WebEx.Core
         }
         public static void LoadModules(this Controller ctrl, params object[] args)
         {
-            var modules = ctrl.HttpContext.Application[ModuleExtensions._webexInternalModuleTypes] as IEnumerable<Type>;
+            var modules = ctrl.HttpContext.Application[WebExModuleExtensions._webexInternalModuleTypes] as IEnumerable<Type>;
             if (modules != null)
                 foreach (var module in modules)
                 {

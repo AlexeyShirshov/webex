@@ -13,7 +13,7 @@ namespace WebEx.Core
     /// <summary>
     /// Summary description for WebExHtmlExtensions
     /// </summary>
-    public static class HtmlExtensions
+    public static class WebExHtmlExtensions
     {
         public const string ModulesFolder = "webex.modules";
         public const string webexViewExtension = "webex:viewext";
@@ -109,7 +109,7 @@ namespace WebEx.Core
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view = "index", object moduleModel = null, bool ignoreCase = false)
         {
-            Type mt = ModuleExtensions.GetModule(helper.ViewData, moduleName, ignoreCase);
+            Type mt = WebExModuleExtensions.GetModule(helper.ViewData, moduleName, ignoreCase);
             if (mt != null)
             {
                 return RenderModule(helper, mt, view, moduleModel);
@@ -120,7 +120,7 @@ namespace WebEx.Core
         public static MvcHtmlString RenderModule(this HtmlHelper helper, Type module, string view = "index", object moduleModel = null)
         {
             object res;
-            if (module != null && helper.ViewData.TryGetValue(ModuleExtensions.MakeViewDataKey(module), out res))
+            if (module != null && helper.ViewData.TryGetValue(WebExModuleExtensions.MakeViewDataKey(module), out res))
             {
                 IModule m = res as IModule;
                 if (m != null)
@@ -136,7 +136,7 @@ namespace WebEx.Core
             Type mt = Type.GetType(moduleName, false, ignoreCase);
             if (mt != null)
             {
-                return helper.ViewData.ContainsKey(ModuleExtensions.MakeViewDataKey(mt));
+                return helper.ViewData.ContainsKey(WebExModuleExtensions.MakeViewDataKey(mt));
             }
 
             return false;
@@ -144,13 +144,13 @@ namespace WebEx.Core
 
         public static bool HasModule(this HtmlHelper helper, Type module)
         {
-            return helper.ViewData.ContainsKey(ModuleExtensions.MakeViewDataKey(module));
+            return helper.ViewData.ContainsKey(WebExModuleExtensions.MakeViewDataKey(module));
         }
         public static IEnumerable<IModule> GetModules(this HtmlHelper helper)
         {
             foreach(var item in helper.ViewData)
             {
-                if (item.Key.StartsWith(ModuleExtensions._webexInternalModuleInstances))
+                if (item.Key.StartsWith(WebExModuleExtensions._webexInternalModuleInstances))
                 {
                     var module = item.Value as IModule;
                     if (module != null)

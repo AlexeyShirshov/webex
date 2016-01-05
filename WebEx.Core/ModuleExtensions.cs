@@ -7,7 +7,7 @@ using System.Web.Mvc;
 
 namespace WebEx.Core
 {
-    public static class ModuleExtensions
+    public static class WebExModuleExtensions
     {
         public const string _webexInternalModuleInstances = "webex:moduleinstances";
         public const string _webexInternalModuleAliases = "webex:modulealiases";

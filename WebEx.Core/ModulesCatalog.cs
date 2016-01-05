@@ -53,8 +53,8 @@ namespace WebEx.Core
       
         public static void RegisterModules(HttpApplicationState appState, string viewExtension = "cshtml")
         {
-            appState[HtmlExtensions.webexViewExtension] = viewExtension;
-            appState[ModuleExtensions._webexInternalModuleTypes] = GetModules();
+            appState[WebExHtmlExtensions.webexViewExtension] = viewExtension;
+            appState[WebExModuleExtensions._webexInternalModuleTypes] = GetModules();
         }
     }
 }

@@ -37,7 +37,7 @@ namespace WebEx.Core
             if (_type != null)
                 return _type;
             
-            return ModuleExtensions.GetModule(viewData, _moduleName, _ignoreCase);
+            return WebExModuleExtensions.GetModule(viewData, _moduleName, _ignoreCase);
         }
     }
 }
