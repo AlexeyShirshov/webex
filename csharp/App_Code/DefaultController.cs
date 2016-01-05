@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using WebEx.Core;
 
 /// <summary>
 /// Summary description for WebExController
@@ -18,8 +19,7 @@ public class DefaultController : Controller
 
     public ActionResult index(string page = "", string id = "")
     {
-        WebExModel model = new WebExModel();
-        model.Load(this, page, id);
-        return View(model);
+        WebEx.Core.WebExControllerExtensions.LoadModules(this, page, id);
+        return View();
     }
 }

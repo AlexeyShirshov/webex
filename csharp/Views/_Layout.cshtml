@@ -1,6 +1,4 @@
-﻿@model WebExModel
-
-@{
+﻿@{
 
 }
 
@@ -9,16 +7,15 @@
     <meta name="viewport" content="width=device-width" />
     <meta charset="UTF-8">
     <title>
-        WebEx @Html.RenderModule(Model, "Page", view: "title")
+        WebEx @Html.RenderModule("Pages", view: "title")
     </title>
-    @foreach (var str in Html.RenderModulesViewOfType(Model, "css"))
+    @foreach (var str in Html.RenderModulesViewOfType("css"))
     { @str }
 </head>
 <body>
     @RenderBody()
-    @foreach (var str in Html.RenderModulesViewOfType(Model, "corejs", (module) => module.GetType().Name.ToLower().Contains("jquery") ? -100 : 0))
-    { @str }
-    @foreach (var str in Html.RenderModulesViewOfType(Model, "js"))
+    
+    @foreach (var str in Html.RenderModulesViewOfType("js"))
     { @str }
 </body>
 
