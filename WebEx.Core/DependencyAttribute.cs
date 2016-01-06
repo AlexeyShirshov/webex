@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace WebEx.Core
@@ -32,12 +33,12 @@ namespace WebEx.Core
         {
             _type = Type.GetType(type, assemblyResolver, typeResolver, false, ignoreCase);
         }
-        public Type GetDependencyType(ViewDataDictionary viewData = null)
+        public Type GetDependencyType(HttpApplicationStateBase appState = null)
         {
             if (_type != null)
                 return _type;
-            
-            return WebExModuleExtensions.GetModule(viewData, _moduleName, _ignoreCase);
+
+            return ModulesCatalog.GetModule(appState, _moduleName, _ignoreCase);
         }
     }
 }

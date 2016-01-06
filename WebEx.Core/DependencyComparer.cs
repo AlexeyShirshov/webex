@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace WebEx.Core
 {
     public class DependencyComparer : IComparer<IModule>
     {
-        private ViewDataDictionary _vd;
+        private HttpApplicationStateBase _vd;
         public DependencyComparer()
         {
 
         }
-        public DependencyComparer(ViewDataDictionary viewData)
+        public DependencyComparer(HttpApplicationStateBase viewData)
         {
             _vd = viewData;
         }

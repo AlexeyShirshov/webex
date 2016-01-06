@@ -10,19 +10,15 @@ namespace WebEx.Core
 {
     public static class WebExControllerExtensions
     {
-        public static IModule LoadModule(this Controller ctrl, string type, params object[] args)
+        public static IModule LoadModule(this Controller ctrl, string moduleName, params object[] args)
         {
-            return LoadModule(ctrl, type, false, args);
+            return LoadModule(ctrl, moduleName, false, args);
         }
-        public static IModule LoadModule(this Controller ctrl, string type, bool ignoreCase, params object[] args)
+        public static IModule LoadModule(this Controller ctrl, string moduleName, bool ignoreCase, params object[] args)
         {
-            return LoadModule(ctrl, Type.GetType(type, false, ignoreCase), args);
+            return LoadModule(ctrl, ModulesCatalog.GetModule(ctrl.HttpContext.Application, moduleName, ignoreCase), args);
         }
         public static IModule LoadModule(this Controller ctrl, Type type, params object[] args)
-        {
-            return LoadModule(ctrl, type, null, args);
-        }
-        public static IModule LoadModule(this Controller ctrl, Type type, string alias, params object[] args)
         {
             if (type == null)
                 return null;
@@ -85,7 +81,7 @@ namespace WebEx.Core
 
             if (r != null)
             {
-                WebExModuleExtensions.RegisterModule(ctrl.ViewData, type, r, alias);
+                RegisterModule(ctrl.ViewData, type, r);
             }
 
             return r;
@@ -102,12 +98,17 @@ namespace WebEx.Core
         }
         public static void LoadModules(this Controller ctrl, params object[] args)
         {
-            var modules = ctrl.HttpContext.Application[WebExModuleExtensions._webexInternalModuleTypes] as IEnumerable<Type>;
+            var modules = ctrl.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
             if (modules != null)
                 foreach (var module in modules)
                 {
                     LoadModule(ctrl, module, args);
                 }
         }
+        public static void RegisterModule(this ViewDataDictionary ViewData, Type type, IModule r)
+        {
+            ViewData[WebExModuleExtensions.MakeViewDataKey(type)] = r;
+        }
+
     }
 }

@@ -25,26 +25,28 @@ namespace WebEx.Core
 
             return ext;
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, string view = "", object moduleModel = null)
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, IModuleView view, object moduleModel = null)
         {
+            //string.IsNullOrEmpty(view)?(IModuleView)new DefaultView():new ModuleView(view)
             if (module == null)
             {
-                return helper.RenderModuleCustom(null, null, view);
+                return helper.RenderModuleManual(null, view, moduleModel);
             }
 
-            var v = view;
-            if (string.IsNullOrEmpty(v))
-                v = module.GetViewOfType(Contracts.DefaultView, helper);
-
-            var modelModule = module as IModuleWithModel;
-            if (modelModule == null)
+            if (view != null)
             {
-                return new MvcHtmlString(v);
+                var modelModule = module as IModuleWithModel;
+                var mstr = view as ModuleViewString;
+                if (mstr != null)
+                {
+                    return new MvcHtmlString(mstr.Value);
+                }
+                else if (modelModule != null)
+                {
+                    return helper.RenderModuleManual(GetModuleFolder(module), view, (object)modelModule.Model);
+                }
             }
-            else
-            {
-                return helper.RenderModuleCustom(GetModuleFolder(module), (object)modelModule.Model, v);
-            }
+            return null;
         }
 
         private static string GetModuleFolder(IModule module)
@@ -52,7 +54,7 @@ namespace WebEx.Core
             return GetModuleFolder(module.GetType().Name);
         }
         private static string GetModuleFolder(string moduleName)
-        {            
+        {
             if (moduleName.EndsWith("module", StringComparison.InvariantCultureIgnoreCase))
                 moduleName = moduleName.Substring(0, moduleName.Length - 6);
             return moduleName;
@@ -61,14 +63,42 @@ namespace WebEx.Core
         {
             return GetModuleFolder(module.Name);
         }
-        public static MvcHtmlString RenderModuleCustom(this HtmlHelper helper, string moduleFolder, object model = null, string view = "index")
+        private static bool TryGetProp(object model, IModuleView view, ref string val)
         {
-            var realViewName = view;
-            if (view == Contracts.DefaultView)
+            if (model == null)
+                return false;
+
+            if (view == null || string.IsNullOrEmpty(view.Value) || view.Value == Contracts.DefaultView)
+                return false;
+
+            var props = from k in model.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.GetProperty)
+                        where string.Equals(view.Value, k.Name, StringComparison.InvariantCultureIgnoreCase) && k.PropertyType == typeof(string)
+                        select k;
+
+            var prop = props.FirstOrDefault();
+
+            if (prop != null)
+            {
+                val = prop.GetValue(model) as string;
+                return true;
+            }
+
+            return false;
+        }
+        public static MvcHtmlString RenderModuleManual(this HtmlHelper helper, string moduleFolder, IModuleView view, object model = null)
+        {
+            string realViewName = null;
+            if (view.IsDefault())
+                realViewName = "index";
+            else if (view != null)
+                realViewName = view.Value;
+
+            if (string.IsNullOrEmpty(realViewName) || realViewName == Contracts.DefaultView)
                 realViewName = "index";
 
             if (!string.IsNullOrEmpty(moduleFolder))
             {
+                string val = null;
                 var viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName,
                     GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
 
@@ -76,7 +106,7 @@ namespace WebEx.Core
                 {
                     return helper.Partial(viewNameInner, model);
                 }
-                else if (view == Contracts.DefaultView)
+                else if (view.IsDefault() || (view.IsAuto() && view != null && (string.IsNullOrEmpty(view.Value) || view.Value == Contracts.DefaultView)))
                 {
                     realViewName = "default";
                     viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName,
@@ -85,16 +115,28 @@ namespace WebEx.Core
                     {
                         return helper.Partial(viewNameInner, model);
                     }
+                    else if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
+                    {
+                        return new MvcHtmlString(val);
+                    }
+                    else if (view.IsAuto())
+                        return null;
                 }
+                else if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
+                {
+                    return new MvcHtmlString(val);
+                }
+                else if (view.IsAuto())
+                    return null;
             }
 
-            var viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName, 
+            var viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName,
                 GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
             if (helper.PartialViewExists(viewName))
             {
                 return helper.Partial(viewName, new WebExModuleNotFoundModel(moduleFolder, view, model));
             }
-            else if (view == Contracts.DefaultView)
+            else if (view.IsDefault())
             {
                 realViewName = "default";
                 viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName,
@@ -107,26 +149,31 @@ namespace WebEx.Core
 
             return null;
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view = "index", object moduleModel = null, bool ignoreCase = false)
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view = null, object moduleModel = null, bool ignoreCase = false)
         {
-            Type mt = WebExModuleExtensions.GetModule(helper.ViewData, moduleName, ignoreCase);
+            Type mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
             if (mt != null)
             {
                 return RenderModule(helper, mt, view, moduleModel);
             }
 
-            return helper.RenderModuleCustom(moduleName, moduleModel, view); ;
+            return null;// helper.RenderModuleManual(moduleName, moduleModel, view);
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, Type module, string view = "index", object moduleModel = null)
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, Type module, string view = null, object moduleModel = null)
         {
             object res;
             if (module != null && helper.ViewData.TryGetValue(WebExModuleExtensions.MakeViewDataKey(module), out res))
             {
                 IModule m = res as IModule;
                 if (m != null)
-                    return helper.RenderModule(m, view, moduleModel);
-                else
-                    return helper.RenderModuleCustom(GetModuleFolder(module), res, view);
+                {
+                    if (string.IsNullOrEmpty(view))
+                        view = Contracts.DefaultView;
+
+                    return helper.RenderModule(m, m.GetView(view, helper), moduleModel);
+                }
+                //else
+                //    return helper.RenderModuleManual(GetModuleFolder(module), res, view);
             }
 
             return null;
@@ -148,7 +195,7 @@ namespace WebEx.Core
         }
         public static IEnumerable<IModule> GetModules(this HtmlHelper helper)
         {
-            foreach(var item in helper.ViewData)
+            foreach (var item in helper.ViewData)
             {
                 if (item.Key.StartsWith(WebExModuleExtensions._webexInternalModuleInstances))
                 {
@@ -177,12 +224,12 @@ namespace WebEx.Core
             Func<IModule, int> getOrderWeight = null)
         {
             foreach (var module in GetModules(helper).OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it)).
-                ThenBy(it=>it, new DependencyComparer(helper.ViewData)))
+                ThenBy(it => it, new DependencyComparer(helper.ViewContext.HttpContext.Application)))
             {
 
-                var view = module.GetViewOfType(viewType, helper);
-                if (!string.IsNullOrEmpty(view))
-                    yield return helper.RenderModule(module, view: view);
+                var view = module.GetView(viewType, helper);
+                if (view != null)
+                    yield return helper.RenderModule(module, view);
             }
         }
     }

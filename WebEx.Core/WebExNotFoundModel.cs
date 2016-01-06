@@ -12,9 +12,9 @@ namespace WebEx.Core
     public class WebExModuleNotFoundModel
     {
         private string _module;
-        private string _view;
+        private IModuleView _view;
         private object _model;
-        public WebExModuleNotFoundModel(string module, string view = "", object model = null)
+        public WebExModuleNotFoundModel(string module, IModuleView view, object model = null)
         {
             _module = module;
             _view = view;
@@ -28,7 +28,7 @@ namespace WebEx.Core
                 return _module;
             }
         }
-        public string View
+        public IModuleView View
         {
             get
             {

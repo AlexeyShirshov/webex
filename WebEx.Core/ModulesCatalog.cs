@@ -13,6 +13,9 @@ namespace WebEx.Core
     /// </summary>
     public class ModulesCatalog
     {
+        public const string _webexInternalModuleAliases = "webex:modulealiases";
+        public const string _webexInternalModuleTypes = "webex:modules";
+
         public static Type[] GetModules(string assemblyPattern = "App_Code")
         {
             List<Type> r = new List<Type>();
@@ -42,19 +45,61 @@ namespace WebEx.Core
                                 r.Add(type);
                         }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 
                 }
             }
 
             return r.ToArray();
-        }  
-      
+        }
+
         public static void RegisterModules(HttpApplicationState appState, string viewExtension = "cshtml")
         {
             appState[WebExHtmlExtensions.webexViewExtension] = viewExtension;
-            appState[WebExModuleExtensions._webexInternalModuleTypes] = GetModules();
+            var modules = GetModules();
+            appState[_webexInternalModuleTypes] = modules;
+            foreach (var type in modules)
+            {
+                var attr = type.GetCustomAttribute<ModuleAliasAttribute>();
+                string alias = null;
+                if (attr != null)
+                    alias = attr.Alias;
+
+                if (string.IsNullOrEmpty(alias))
+                {
+                    alias = type.Name;
+                    if (alias.EndsWith("module", StringComparison.InvariantCultureIgnoreCase))
+                        alias = alias.Substring(0, alias.Length - 6);
+                }
+                appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
+            }
+        }
+
+        public static string MakeAliasViewDataKey(string alias)
+        {
+            return string.Format("{0}:{1}", _webexInternalModuleAliases, alias);
+        }
+
+        public static Type GetModule(HttpApplicationStateBase appState, string moduleName, bool ignoreCase = false)
+        {
+            object qname = null;
+            if (appState != null)
+            {
+                if (appState.AllKeys.Contains(MakeAliasViewDataKey(moduleName)))
+                {
+                    qname = appState[MakeAliasViewDataKey(moduleName)];
+                }
+            }
+            else
+            {
+                qname = moduleName;
+            }
+
+            if (qname != null)
+                return Type.GetType(qname.ToString(), false, ignoreCase);
+
+            return null;
         }
     }
 }
