@@ -1,10 +1,8 @@
-﻿@model WebExModel
-
-@{
+﻿@{
     Layout = "~/Views/_layout.cshtml";
 }
 
 Hello from WebEx!
 
-@Html.RenderModule(Model, "Menu")
-@Html.RenderModule(Model, "Page")
+@Html.RenderModule("Menu")
+@Html.RenderModule("Pages")
