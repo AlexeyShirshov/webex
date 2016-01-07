@@ -6,13 +6,13 @@
     <title>
         WebEx @Html.RenderModule("PagesModule.PagesModule, App_Code", view:="title")
     </title>
-    @For Each css In Html.RenderModulesViewOfType("css")
+    @For Each css In Html.RenderModules("css")
      @css
         next
 </head>
 <body>
     @RenderBody()
-    @For Each js In Html.RenderModulesViewOfType("js")
+    @For Each js In Html.RenderModules("js")
      @js 
         next
 </body>

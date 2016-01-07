@@ -12,7 +12,8 @@
     void Application_Start(object sender, EventArgs e) 
     {
         AppConfig.RegisterRoutes(RouteTable.Routes);
-        ModulesCatalog.RegisterModules(Application, "cshtml"); 
+        ModulesCatalog.RegisterModules(Application, "cshtml");
+        GlobalFilters.Filters.Add(new ModuleActionFilterAttribute());
         //var catalog = new AggregateCatalog();
 
         //catalog.Catalogs.Add(new DirectoryCatalog(Server.MapPath("~/Bin"), "*webexmodule*"));

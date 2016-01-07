@@ -60,5 +60,13 @@ namespace WebEx.Core
         {
             return view != null && view.GetType() == typeof(ModuleAutoView);
         }
+        public static IModule GetModule(this ViewDataDictionary viewData, Type module)
+        {
+            object res;
+            if (module != null && viewData.TryGetValue(MakeViewDataKey(module), out res))
+                return res as IModule;
+
+            return null;
+        }        
     }
 }

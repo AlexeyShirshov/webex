@@ -9,13 +9,13 @@
     <title>
         WebEx @Html.RenderModule("Pages", view: "title")
     </title>
-    @foreach (var str in Html.RenderModulesViewOfType("css"))
+    @foreach (var str in Html.RenderModules("css"))
     { @str }
 </head>
 <body>
     @RenderBody()
     
-    @foreach (var str in Html.RenderModulesViewOfType("js"))
+    @foreach (var str in Html.RenderModules("js"))
     { @str }
 </body>
 

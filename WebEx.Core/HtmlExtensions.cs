@@ -205,6 +205,10 @@ namespace WebEx.Core
                 }
             }
         }
+        public static IModule GetModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
+        {
+            return WebExModuleExtensions.GetModule(helper.ViewData, ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase));
+        }
         public static MvcHtmlString RenderPartialIfExists(this HtmlHelper html, string partialViewName)
         {
             if (html.PartialViewExists(partialViewName))
@@ -220,7 +224,7 @@ namespace WebEx.Core
         {
             return ViewEngines.Engines.FindView(html.ViewContext.Controller.ControllerContext, viewName, master).View != null;
         }
-        public static IEnumerable<MvcHtmlString> RenderModulesViewOfType(this HtmlHelper helper, string viewType,
+        public static IEnumerable<MvcHtmlString> RenderModules(this HtmlHelper helper, string viewType,
             Func<IModule, int> getOrderWeight = null)
         {
             foreach (var module in GetModules(helper).OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it)).

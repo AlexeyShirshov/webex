@@ -75,7 +75,14 @@ namespace WebEx.Core
                 appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
             }
         }
+        public static void SetModuleAlias(HttpApplicationState appState, Type module, string alias)
+        {
+            if (module == null || string.IsNullOrEmpty(alias))
+                return;
 
+            appState[MakeAliasViewDataKey(alias)] = module.AssemblyQualifiedName;
+
+        }
         public static string MakeAliasViewDataKey(string alias)
         {
             return string.Format("{0}:{1}", _webexInternalModuleAliases, alias);

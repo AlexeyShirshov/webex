@@ -10,15 +10,15 @@ namespace WebEx.Core
 {
     public static class WebExControllerExtensions
     {
-        public static IModule LoadModule(this Controller ctrl, string moduleName, params object[] args)
+        public static IModule LoadModule(this ControllerBase ctrl, string moduleName, params object[] args)
         {
             return LoadModule(ctrl, moduleName, false, args);
         }
-        public static IModule LoadModule(this Controller ctrl, string moduleName, bool ignoreCase, params object[] args)
+        public static IModule LoadModule(this ControllerBase ctrl, string moduleName, bool ignoreCase, params object[] args)
         {
-            return LoadModule(ctrl, ModulesCatalog.GetModule(ctrl.HttpContext.Application, moduleName, ignoreCase), args);
+            return LoadModule(ctrl, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase), args);
         }
-        public static IModule LoadModule(this Controller ctrl, Type type, params object[] args)
+        public static IModule LoadModule(this ControllerBase ctrl, Type type, params object[] args)
         {
             if (type == null)
                 return null;
@@ -86,19 +86,19 @@ namespace WebEx.Core
 
             return r;
         }
-        public static IModule LoadModule(this Controller ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
+        public static IModule LoadModule(this ControllerBase ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
             Func<Assembly, string, bool, Type> typeResolver, params object[] args)
         {
             return LoadModule(ctrl, type, assemblyResolver, typeResolver, false, args);
         }
-        public static IModule LoadModule(this Controller ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
+        public static IModule LoadModule(this ControllerBase ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
             Func<Assembly, string, bool, Type> typeResolver, bool ignoreCase, params object[] args)
         {
             return LoadModule(ctrl, Type.GetType(type, assemblyResolver, typeResolver, false, ignoreCase), args);
         }
-        public static void LoadModules(this Controller ctrl, params object[] args)
+        public static void LoadModules(this ControllerBase ctrl, params object[] args)
         {
-            var modules = ctrl.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
+            var modules = ctrl.ControllerContext.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
             if (modules != null)
                 foreach (var module in modules)
                 {
@@ -109,6 +109,9 @@ namespace WebEx.Core
         {
             ViewData[WebExModuleExtensions.MakeViewDataKey(type)] = r;
         }
-
+        public static IModule GetModule(this ControllerBase ctrl, string moduleName, bool ignoreCase = false)
+        {
+            return WebExModuleExtensions.GetModule(ctrl.ViewData, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase));
+        }
     }
 }

@@ -1,0 +1,23 @@
+﻿@using System.Linq
+@using NuGet
+
+@model IQueryable<IPackage>
+
+@{
+    
+}
+
+<ul>
+    @foreach (var item in from k in Model
+                             select k)
+    {
+        <li>
+        <ul>
+            <li>@item.Title</li>
+            <li>@item.Description</li>
+            <li>@item.GetFullName()</li>
+            <li>@item.Id</li>
+        </ul>
+        </li>
+    }
+</ul>

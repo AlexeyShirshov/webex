@@ -17,7 +17,14 @@ public partial class AppConfig
         routes.MapRoute(
             "Default",
             "{page}/{id}",
-            new { controller = "Default", action = "index", page = UrlParameter.Optional, id = UrlParameter.Optional }
+            new { controller = "Default", action = "index", page = UrlParameter.Optional, id = UrlParameter.Optional },
+            new { page = "(?!x).*"}
+        );
+
+        routes.MapRoute(
+            "actions",
+            "x/{action}/{id}",
+            new { controller = "Default", action = "index", id = UrlParameter.Optional }
         );
     }
 }
