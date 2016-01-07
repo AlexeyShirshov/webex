@@ -1,5 +1,4 @@
-﻿using NuGet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -25,12 +24,12 @@ public class DefaultController : Controller
         return View();
     }
 
-    public ActionResult modules()
-    {
-        var remoteRepo = PackageRepositoryFactory.Default.CreateRepository("http://owa:8001/nuget/");
-        var localRepo = PackageRepositoryFactory.Default.CreateRepository(Server.MapPath("~/App_Data/Packages"));
-        return View(localRepo.GetPackages());
-    }
+    //public ActionResult modules()
+    //{
+    //    var remoteRepo = PackageRepositoryFactory.Default.CreateRepository("http://owa:8001/nuget/");
+    //    var localRepo = PackageRepositoryFactory.Default.CreateRepository(Server.MapPath("~/App_Data/Packages"));
+    //    return View(localRepo.GetPackages());
+    //}
 
     //private WebProjectManager GetProjectManager()
     //{

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using WebEx.Core;
@@ -13,9 +11,9 @@ public class BootstrapModule : IModule
         var url = new UrlHelper(html.ViewContext.RequestContext);
         switch(type)
         {
-            case "css":
+            case Contracts.CSSView:
                 return new ModuleViewString("<link href='{0}' rel='stylesheet'/>", url.Content("~/Content/bootstrap/bootstrap.css"));
-            case "js":
+            case Contracts.JavascriptView:
                 return new ModuleViewString("<script src='{0}'></script>", url.Content("~/Scripts/bootstrap.js"));
         }
 

@@ -45,7 +45,7 @@ namespace WebEx.Core
 
                         if (arg == null)
                         {
-                            if (typeof(Controller).IsAssignableFrom(mtype))
+                            if (typeof(ControllerBase).IsAssignableFrom(mtype))
                                 params2Call[i] = ctrl;
 
                             if (args != null && args.Length > j)
@@ -58,6 +58,10 @@ namespace WebEx.Core
                                 params2Call[i] = arg;
                                 j++;
                             }
+                            else if (typeof(ControllerBase).IsAssignableFrom(mtype) && !typeof(ControllerBase).IsAssignableFrom(arg.GetType()))
+                            {
+                                params2Call[i] = ctrl;
+                            }
                             else
                             {
                                 try
@@ -67,10 +71,7 @@ namespace WebEx.Core
                                 }
                                 catch(Exception ex)
                                 {
-                                    if (typeof(Controller).IsAssignableFrom(mtype))
-                                    {
-                                        params2Call[i] = ctrl;
-                                    }
+                                    //eat an exception
                                 }
                             }
                         }

@@ -1,10 +1,8 @@
 ﻿<%@ Application Language="C#" %>
 <%@ Import namespace="System.Web.Mvc" %>
 <%@ Import namespace="System.Web.Routing" %>
-<%@ Import namespace="System.ComponentModel.Composition.Hosting" %>
 <%@ Import namespace="System.Reflection" %>
 <%@ Import namespace="System.IO" %>
-<%@ Import namespace="System.ComponentModel.Composition" %>
 <%@ Import namespace="WebEx.Core" %>
 
 <script runat="server">
@@ -14,22 +12,6 @@
         AppConfig.RegisterRoutes(RouteTable.Routes);
         ModulesCatalog.RegisterModules(Application, "cshtml");
         GlobalFilters.Filters.Add(new ModuleActionFilterAttribute());
-        //var catalog = new AggregateCatalog();
-
-        //catalog.Catalogs.Add(new DirectoryCatalog(Server.MapPath("~/Bin"), "*webexmodule*"));
-        //catalog.Catalogs.Add(new DirectoryCatalog(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)));
-
-        //var container = new CompositionContainer(catalog);
-
-        //try 
-        //{
-        //    container.ComposeParts(AppConfig.PluginsRegistry);
-        //}
-        //catch (Exception ex) 
-        //{
-	        
-        //}
-
     }
     
     void Application_End(object sender, EventArgs e) 

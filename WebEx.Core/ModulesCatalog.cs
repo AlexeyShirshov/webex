@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
+using System.Web.Compilation;
+using System.Web.Hosting;
 
 namespace WebEx.Core
 {
@@ -16,24 +18,21 @@ namespace WebEx.Core
         public const string _webexInternalModuleAliases = "webex:modulealiases";
         public const string _webexInternalModuleTypes = "webex:modules";
 
-        public static Type[] GetModules(string assemblyPattern = "App_Code")
+        public static Type[] GetModules(string assemblyPattern = "*webexmodule*.dll")
         {
             List<Type> r = new List<Type>();
 
-            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+            if (BuildManager.CodeAssemblies != null)
+            foreach (var ass in BuildManager.CodeAssemblies.OfType<Assembly>())
             {
-                if (ass.FullName.IndexOf("webexmodule", StringComparison.InvariantCultureIgnoreCase) >= 0 ||
-                    ass.FullName.IndexOf(assemblyPattern, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                foreach (var type in ass.GetTypes())
                 {
-                    foreach (var type in ass.GetTypes())
-                    {
-                        if (typeof(IModule).IsAssignableFrom(type))
-                            r.Add(type);
-                    }
+                    if (typeof(IModule).IsAssignableFrom(type))
+                        r.Add(type);
                 }
             }
 
-            foreach (var file in Directory.GetFiles(HttpContext.Current.Server.MapPath("~/Bin"), "*webexmodule*.dll"))
+            foreach (var file in Directory.GetFiles(GetAssemblyDir(), assemblyPattern))
             {
                 try
                 {
@@ -53,8 +52,14 @@ namespace WebEx.Core
 
             return r.ToArray();
         }
+        private static string GetAssemblyDir()
+        {
+            return HostingEnvironment.IsHosted
+                ? HttpRuntime.BinDirectory
+                : Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+        }
 
-        public static void RegisterModules(HttpApplicationState appState, string viewExtension = "cshtml")
+        public static void RegisterModules(HttpApplicationState appState, string viewExtension = null)
         {
             appState[WebExHtmlExtensions.webexViewExtension] = viewExtension;
             var modules = GetModules();

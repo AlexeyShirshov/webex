@@ -19,11 +19,11 @@ namespace WebEx.Core
         public const string webexViewExtension = "webex:viewext";
         public static string GetViewExtension(HttpApplicationStateBase app)
         {
-            var ext = app[webexViewExtension] as string;
-            if (string.IsNullOrEmpty(ext))
-                ext = "cshtml";
+            //var ext = app[webexViewExtension] as string;
+            //if (string.IsNullOrEmpty(ext))
+            //    ext = "cshtml";
 
-            return ext;
+            return app[webexViewExtension] as string;
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, IModuleView view, object moduleModel = null)
         {
@@ -51,7 +51,7 @@ namespace WebEx.Core
 
         private static string GetModuleFolder(IModule module)
         {
-            return GetModuleFolder(module.GetType().Name);
+            return GetModuleFolder(module.GetType());
         }
         private static string GetModuleFolder(string moduleName)
         {
@@ -87,6 +87,24 @@ namespace WebEx.Core
         }
         public static MvcHtmlString RenderModuleManual(this HtmlHelper helper, string moduleFolder, IModuleView view, object model = null)
         {
+            var exts = new string[] { };
+            var ext = GetViewExtension(helper.ViewContext.HttpContext.Application);
+            if (string.IsNullOrEmpty(ext))
+                exts = new [] {"cshtml", "vbhtml"};
+            else
+                exts = new [] {ext.Trim('.')};
+
+            foreach (var extension in exts)
+            {
+                MvcHtmlString res;
+                if (RenderModuleInternal(helper, moduleFolder, view, model, extension, out res))
+                    return res;
+            }
+
+            return null;
+        }
+        public static bool RenderModuleInternal(this HtmlHelper helper, string moduleFolder, IModuleView view, object model, string ext, out MvcHtmlString res)
+        {
             string realViewName = null;
             if (view.IsDefault())
                 realViewName = "index";
@@ -99,65 +117,88 @@ namespace WebEx.Core
             if (!string.IsNullOrEmpty(moduleFolder))
             {
                 string val = null;
-                var viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName,
-                    GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
+                
+                var viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName, ext, ModulesFolder);
 
-                if (helper.PartialViewExists(viewNameInner))
+                if (helper.PartialViewExists(viewNameInner, model))
                 {
-                    return helper.Partial(viewNameInner, model);
+                    res = helper.Partial(viewNameInner, model);
+                    return true;
                 }
                 else if (view.IsDefault() || (view.IsAuto() && view != null && (string.IsNullOrEmpty(view.Value) || view.Value == Contracts.DefaultView)))
                 {
                     realViewName = "default";
-                    viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName,
-                        GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
-                    if (helper.PartialViewExists(viewNameInner))
+                    viewNameInner = string.Format("~/Views/{3}/{0}/{1}.{2}", moduleFolder, realViewName, ext, ModulesFolder);
+                    if (helper.PartialViewExists(viewNameInner, model))
                     {
-                        return helper.Partial(viewNameInner, model);
+                        res =  helper.Partial(viewNameInner, model);
+                        return true;
                     }
-                    else if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
-                    {
-                        return new MvcHtmlString(val);
-                    }
-                    else if (view.IsAuto())
-                        return null;
+                    //else if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
+                    //{
+                    //    res = new MvcHtmlString(val);
+                    //    return true;
+                    //}
+                    //else if (view.IsAuto())
+                    //{
+                    //    res = null;
+                    //    return false;
+                    //}
                 }
-                else if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
+                
+                if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
                 {
-                    return new MvcHtmlString(val);
+                    res = new MvcHtmlString(val);
+                    return true;
                 }
                 else if (view.IsAuto())
-                    return null;
+                {
+                    res = null;
+                    return false;
+                }
             }
 
-            var viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName,
-                GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
-            if (helper.PartialViewExists(viewName))
+            var viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName, ext, ModulesFolder);
+            if (helper.PartialViewExists(viewName, model))
             {
-                return helper.Partial(viewName, new WebExModuleNotFoundModel(moduleFolder, view, model));
+                res = helper.Partial(viewName, new WebExModuleNotFoundModel(moduleFolder, view, model));
+                return true;
             }
             else if (view.IsDefault())
             {
                 realViewName = "default";
-                viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName,
-                    GetViewExtension(helper.ViewContext.HttpContext.Application), ModulesFolder);
-                if (helper.PartialViewExists(viewName))
+                viewName = string.Format("~/Views/{2}/{0}.{1}", realViewName, ext, ModulesFolder);
+                if (helper.PartialViewExists(viewName, model))
                 {
-                    return helper.Partial(viewName, new WebExModuleNotFoundModel(moduleFolder, view, model));
+                    res = helper.Partial(viewName, new WebExModuleNotFoundModel(moduleFolder, view, model));
+                    return true;
                 }
             }
 
-            return null;
+            res = null;
+            return false;
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view = null, object moduleModel = null, bool ignoreCase = false)
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view = null, object moduleModel = null, 
+            bool ignoreCase = false)
         {
             Type mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
             if (mt != null)
             {
-                return RenderModule(helper, mt, view, moduleModel);
+                object res;
+                if (mt != null && helper.ViewData.TryGetValue(WebExModuleExtensions.MakeViewDataKey(mt), out res))
+                {
+                    IModule m = res as IModule;
+                    if (m != null)
+                    {
+                        if (string.IsNullOrEmpty(view))
+                            view = Contracts.DefaultView;
+
+                        return helper.RenderModule(m, m.GetView(view, helper), moduleModel);
+                    }
+                }
             }
 
-            return null;// helper.RenderModuleManual(moduleName, moduleModel, view);
+            return helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, Type module, string view = null, object moduleModel = null)
         {
@@ -209,21 +250,31 @@ namespace WebEx.Core
         {
             return WebExModuleExtensions.GetModule(helper.ViewData, ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase));
         }
-        public static MvcHtmlString RenderPartialIfExists(this HtmlHelper html, string partialViewName)
-        {
-            if (html.PartialViewExists(partialViewName))
-                return html.Partial(partialViewName);
+        //public static MvcHtmlString RenderPartialIfExists(this HtmlHelper html, string partialViewName, object model = null)
+        //{
+        //    if (html.PartialViewExists(partialViewName, model))
+        //        return html.Partial(partialViewName, model);
 
-            return null;
-        }
-        public static bool PartialViewExists(this HtmlHelper html, string partialViewName)
+        //    return null;
+        //}
+        public static bool PartialViewExists(this HtmlHelper html, string partialViewName, object model)
         {
-            return ViewEngines.Engines.FindPartialView(html.ViewContext.Controller.ControllerContext, partialViewName).View != null;
-        }
-        public static bool ViewExists(this HtmlHelper html, string viewName, string master = null)
-        {
-            return ViewEngines.Engines.FindView(html.ViewContext.Controller.ControllerContext, viewName, master).View != null;
-        }
+            var vr = ViewEngines.Engines.FindPartialView(html.ViewContext.Controller.ControllerContext, partialViewName);
+            var bm = vr.View as BuildManagerCompiledView;
+            if (bm != null && model == null && html.ViewData.Model != null && html.ViewData.ModelMetadata != null)
+            {
+                var rv = System.Web.Compilation.BuildManager.GetCompiledType(bm.ViewPath);
+                if (typeof(WebViewPage).IsAssignableFrom(rv) && rv.BaseType.IsGenericType)
+                {
+                    return html.ViewData.ModelMetadata.ModelType == rv.BaseType.GetGenericArguments()[0];
+                }                
+            }
+            return vr.View != null;
+        }        
+        //public static bool ViewExists(this HtmlHelper html, string viewName, string master = null)
+        //{
+        //    return ViewEngines.Engines.FindView(html.ViewContext.Controller.ControllerContext, viewName, master).View != null;
+        //}
         public static IEnumerable<MvcHtmlString> RenderModules(this HtmlHelper helper, string viewType,
             Func<IModule, int> getOrderWeight = null)
         {

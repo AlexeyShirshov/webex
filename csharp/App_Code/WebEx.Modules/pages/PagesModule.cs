@@ -41,7 +41,7 @@ namespace PagesModule
         {
             switch(type)
             {
-                case "js":
+                case Contracts.JavascriptView:
                     return new ModuleView("index.js");  
                 default:
                     return new ModuleAutoView(type);

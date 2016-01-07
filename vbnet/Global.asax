@@ -12,7 +12,7 @@
     void Application_Start(object sender, EventArgs e) 
     {
         AppConfig.RegisterRoutes(RouteTable.Routes);
-        ModulesCatalog.RegisterModules(Application, "vbhtml");
+        ModulesCatalog.RegisterModules(Application);
         //this.Application[WebExHtmlExtensions.webexViewExtension] = "vbhtml";
 
         //var catalog = new AggregateCatalog();
