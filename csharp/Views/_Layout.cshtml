@@ -7,16 +7,14 @@
     <meta name="viewport" content="width=device-width" />
     <meta charset="UTF-8">
     <title>
-        WebEx @Html.RenderModule("Pages", view: "title")
+        WebEx @Html.RenderModule("Pages", "title")
     </title>
-    @foreach (var str in Html.RenderModules(Contracts.CSSView))
-    { @str }
+    @Html.RenderModules(Contracts.CSSView)
 </head>
 <body>
     @RenderBody()
 
-    @foreach (var str in Html.RenderModules(Contracts.JavascriptView))
-    { @str }
+    @Html.RenderModules(Contracts.JavascriptView)
 </body>
 
 </html>

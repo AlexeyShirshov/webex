@@ -1,0 +1,11 @@
+﻿@{
+
+}
+<p>
+    this a view param value: @Html.GetViewParam("param")
+</p>
+
+@if (Html.GetViewParam("param") != "recursive")
+{
+@Html.RenderModule("partial", new {Param = "recursive"})
+}

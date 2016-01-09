@@ -69,10 +69,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoCleanup.cs" />
     <Compile Include="Contracts.cs" />
     <Compile Include="ControllerExtensions.cs" />
     <Compile Include="AliasAttribute.cs" />
     <Compile Include="ModuleActionFilter.cs" />
+    <Compile Include="ModuleInstance.cs" />
     <Compile Include="ModulesCatalog.cs" />
     <Compile Include="DependencyAttribute.cs" />
     <Compile Include="DependencyComparer.cs" />
