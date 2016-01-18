@@ -9,8 +9,6 @@ namespace WebEx.Core
     {
         private bool disposed;
         private readonly Action executeOnDispose;
-        private Action action1;
-        private Action action2;
 
         /// <summary>
         /// Constructs an <see cref=”AutoCleanup”/> object,

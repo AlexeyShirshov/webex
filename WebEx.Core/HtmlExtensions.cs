@@ -116,11 +116,18 @@ namespace WebEx.Core
                 }                
             }
             return vr.View != null;
-        }        
-        //public static bool ViewExists(this HtmlHelper html, string viewName, string master = null)
-        //{
-        //    return ViewEngines.Engines.FindView(html.ViewContext.Controller.ControllerContext, viewName, master).View != null;
-        //}
+        }
+        public static string GetViewPath(this HtmlHelper html)
+        {
+            if (html == null)
+                return null;
+
+            var wpb = html.ViewDataContainer as System.Web.WebPages.WebPageBase;
+            if (wpb == null)
+                return null;
+
+            return wpb.VirtualPath;
+        }
         #region RenderModule
         public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, IDictionary<string, object> args, 
             IModuleView view, string moduleInstanceId)
@@ -141,7 +148,20 @@ namespace WebEx.Core
                 }
                 else if (modelModule != null)
                 {
-                    return helper.RenderModuleManual(GetModuleFolder(module), view, (object)modelModule.Model, moduleInstanceId, args);
+                    var moduleFolder = GetModuleFolder(module);
+                    var r = helper.RenderModuleManual(moduleFolder, view, (object)modelModule.Model, moduleInstanceId, args);
+                    if (r == null)
+                    {
+                        var curViewPath = helper.GetViewPath();
+                        if (!string.IsNullOrEmpty(curViewPath))
+                        {
+                            var dir = System.IO.Path.GetDirectoryName(curViewPath);
+                            moduleFolder = System.IO.Path.Combine(dir, moduleFolder);
+                        }
+                        r = helper.RenderModuleManual(moduleFolder, view, (object)modelModule.Model, moduleInstanceId, args);
+                    }
+
+                    return r;
                 }
             }
             return null;
@@ -165,16 +185,27 @@ namespace WebEx.Core
             }
 
             //support for regular partial views
-            if (helper.PartialViewExists(moduleFolder, model))
+            var hasExt = !string.IsNullOrEmpty(System.IO.Path.GetExtension(moduleFolder));
+            foreach (var extension in exts)
             {
-                if (string.IsNullOrEmpty(moduleInstanceId))
-                    moduleInstanceId = Guid.NewGuid().ToString();
+                var viewPath = moduleFolder;
+                if (!hasExt)
+                    viewPath += "." + extension;
 
-                using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, args), () => helper.CleanupRender(moduleInstanceId)))
+                if (helper.PartialViewExists(viewPath, model))
                 {
-                    return helper.Partial(moduleFolder, model);
+                    if (string.IsNullOrEmpty(moduleInstanceId))
+                        moduleInstanceId = Guid.NewGuid().ToString();
+
+                    using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, args), () => helper.CleanupRender(moduleInstanceId)))
+                    {
+                        return helper.Partial(viewPath, model);
+                    }
                 }
-            }
+                else if (hasExt)
+                    break;
+            }            
+
             return null;
         }
         public static bool RenderModuleInternal(this HtmlHelper helper, string moduleFolder, IModuleView view, object model, string ext,
@@ -305,7 +336,19 @@ namespace WebEx.Core
                 }
             }
 
-            return helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel, moduleInstanceId, args);
+            var r = helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel, moduleInstanceId, args);
+            if (r == null)
+            {
+                var curViewPath = helper.GetViewPath();
+                if (!string.IsNullOrEmpty(curViewPath))
+                {
+                    var dir = System.IO.Path.GetDirectoryName(curViewPath);
+                    moduleName = System.IO.Path.Combine(dir, moduleName);
+                }
+                r = helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel, moduleInstanceId, args);
+            }
+
+            return r;
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, Type module, IDictionary<string, object> args = null,
             string view = null,
