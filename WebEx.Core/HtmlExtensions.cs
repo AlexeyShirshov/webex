@@ -225,6 +225,7 @@ namespace WebEx.Core
 
             //support for regular partial views
             var hasExt = !string.IsNullOrEmpty(System.IO.Path.GetExtension(moduleFolder));
+            if (hasExt) exts = new[] { System.IO.Path.GetExtension(moduleFolder) };
             foreach (var extension in exts)
             {
                 var viewPath = moduleFolder;
