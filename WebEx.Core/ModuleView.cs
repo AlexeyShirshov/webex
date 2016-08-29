@@ -29,6 +29,7 @@ namespace WebEx.Core
     public sealed class ModuleAutoView : IModuleView
     {
         private string _str;
+        private string _ext = string.Empty;
         public ModuleAutoView() { }
         public ModuleAutoView(string viewName)
         {
@@ -39,6 +40,17 @@ namespace WebEx.Core
             get
             {
                 return _str;
+            }
+        }
+        internal string Ext
+        {
+            get
+            {
+                return _ext;
+            }
+            set
+            {
+                _ext = value;
             }
         }
     }
