@@ -371,6 +371,10 @@ namespace WebEx.Core
         {
             return helper.RenderModule(moduleName, (IDictionary<string, object>)null, view, moduleModel, false, moduleInstanceId);
         }
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, object moduleModel, string moduleInstanceId = null)
+        {
+            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, null, moduleModel, false, moduleInstanceId);
+        }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, object args = null, 
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null)
