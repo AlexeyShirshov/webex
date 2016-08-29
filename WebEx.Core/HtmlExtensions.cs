@@ -375,14 +375,14 @@ namespace WebEx.Core
         {
             return helper.RenderModule(moduleName, (IDictionary<string, object>)null, null, moduleModel, false, moduleInstanceId);
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, object args = null, 
+        public static MvcHtmlString RenderModuleArgs(this HtmlHelper helper, string moduleName, object args,
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null)
         {
-            return helper.RenderModule(moduleName, args == null?(IDictionary<string, object>)null:new RouteValueDictionary(args), 
+            return helper.RenderModule(moduleName, args == null ? (IDictionary<string, object>)null : new RouteValueDictionary(args),
                 view, moduleModel, ignoreCase, moduleInstanceId);
         }
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args = null,
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args,
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null)
         {
