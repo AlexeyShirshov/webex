@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -82,7 +83,7 @@ namespace WebEx.Core
 
             if (r != null)
             {
-                RegisterModule(ctrl.ViewData, type, r);
+                RegisterModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, type, r);
             }
 
             return r;
@@ -106,13 +107,13 @@ namespace WebEx.Core
                     LoadModule(ctrl, module, args);
                 }
         }
-        public static void RegisterModule(this ViewDataDictionary ViewData, Type type, IModule r)
+        public static void RegisterModule(IDictionary storage, Type type, IModule r)
         {
-            ViewData[WebExModuleExtensions.MakeViewDataKey(type)] = r;
+            storage[WebExModuleExtensions.MakeViewDataKey(type)] = r;
         }
         public static IModule GetModule(this ControllerBase ctrl, string moduleName, bool ignoreCase = false)
         {
-            return WebExModuleExtensions.GetModule(ctrl.ViewData, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase));
+            return WebExModuleExtensions.GetModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase));
         }
     }
 }

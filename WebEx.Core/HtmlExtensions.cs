@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -71,7 +72,7 @@ namespace WebEx.Core
             Type mt = Type.GetType(moduleName, false, ignoreCase);
             if (mt != null)
             {
-                return helper.ViewData.ContainsKey(WebExModuleExtensions.MakeViewDataKey(mt));
+                return helper.GetStorage().ContainsKey(WebExModuleExtensions.MakeViewDataKey(mt));
             }
 
             return false;
@@ -79,13 +80,13 @@ namespace WebEx.Core
 
         public static bool HasModule(this HtmlHelper helper, Type module)
         {
-            return helper.ViewData.ContainsKey(WebExModuleExtensions.MakeViewDataKey(module));
+            return helper.GetStorage().ContainsKey(WebExModuleExtensions.MakeViewDataKey(module));
         }
         public static IEnumerable<IModule> GetModules(this HtmlHelper helper)
         {
-            foreach (var item in helper.ViewData)
+            foreach (DictionaryEntry item in helper.ViewContext.RequestContext.HttpContext.Items)
             {
-                if (item.Key.StartsWith(WebExModuleExtensions._webexInternalModuleInstances))
+                if (item.Key.ToString().StartsWith(WebExModuleExtensions._webexInternalModuleInstances))
                 {
                     var module = item.Value as IModule;
                     if (module != null)
@@ -96,7 +97,7 @@ namespace WebEx.Core
         public static IEnumerable<Tuple<string, object>> GetInlineModules(this HtmlHelper helper, string type)
         {
             object res;
-            if (!helper.ViewData.TryGetValue(_webexInternalInlineModuleInstances, out res))
+            if (!helper.GetStorage().TryGetValue(_webexInternalInlineModuleInstances, out res))
             {
                 res = new Tuple<string, string, object>[] { };
             }
@@ -105,10 +106,10 @@ namespace WebEx.Core
         public static void RegisterInlineModule(this HtmlHelper helper, string type, string view, object model)
         {
             object res;
-            if (!helper.ViewData.TryGetValue(_webexInternalInlineModuleInstances, out res))
+            if (!helper.GetStorage().TryGetValue(_webexInternalInlineModuleInstances, out res))
             {
                 res = new List<Tuple<string, string, object>>();
-                helper.ViewData[_webexInternalInlineModuleInstances] = res;
+                helper.GetStorage()[_webexInternalInlineModuleInstances] = res;
             }
 
             var l = res as List<Tuple<string, string, object>>;
@@ -118,7 +119,7 @@ namespace WebEx.Core
         }
         public static IModule GetModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
         {
-            return WebExModuleExtensions.GetModule(helper.ViewData, ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase));
+            return WebExModuleExtensions.GetModule(helper.ViewContext.RequestContext.HttpContext.Items, ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase));
         }
         //public static MvcHtmlString RenderPartialIfExists(this HtmlHelper html, string partialViewName, object model = null)
         //{
@@ -226,36 +227,47 @@ namespace WebEx.Core
             //support for regular partial views
             var hasExt = !string.IsNullOrEmpty(System.IO.Path.GetExtension(moduleFolder));
             if (hasExt) exts = new[] { System.IO.Path.GetExtension(moduleFolder).Trim('.') };
-            foreach (var extension in exts)
+            var defViews = new[] { "index", "default" };
+            foreach (var defView in defViews)
             {
-                var viewPath = moduleFolder;
-                if (!hasExt)
-                    viewPath += "." + extension;
-
-                if (helper.PartialViewExists(viewPath, model))
+                foreach (var extension in exts)
                 {
-                    if (string.IsNullOrEmpty(moduleInstanceId))
-                        moduleInstanceId = Guid.NewGuid().ToString();
-
-                    MvcHtmlString res;
-                    using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, args), () => helper.CleanupRender(moduleInstanceId)))
+                    var viewPath = moduleFolder.TrimEnd('/');
+                    if (view.IsDefault())
                     {
-                        res = helper.Partial(viewPath, model);
+                        viewPath += "/" + defView;
+                    }
+                    else if (!view.IsEmpty())
+                    {
+                        viewPath += "/" + view.Value;
                     }
 
-                    var cssViewName = viewPath.Replace(extension, "css." + extension);
-                    if (helper.PartialViewExists(cssViewName, model))
-                        helper.RegisterInlineModule("css", cssViewName, model);
+                    if (!hasExt)
+                        viewPath += "." + extension;
 
-                    var jsViewName = viewPath.Replace(extension, "js." + extension);
-                    if (helper.PartialViewExists(jsViewName, model))
-                        helper.RegisterInlineModule("js", jsViewName, model);
+                    if (helper.PartialViewExists(viewPath, model))
+                    {
+                        if (string.IsNullOrEmpty(moduleInstanceId))
+                            moduleInstanceId = Guid.NewGuid().ToString();
 
-                    return res;
+                        MvcHtmlString res;
+                        using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, args), () => helper.CleanupRender(moduleInstanceId)))
+                        {
+                            res = helper.Partial(viewPath, model);
+                        }
+
+                        var cssViewName = viewPath.Replace(extension, "css." + extension);
+                        if (helper.PartialViewExists(cssViewName, model))
+                            helper.RegisterInlineModule("css", cssViewName, model);
+
+                        var jsViewName = viewPath.Replace(extension, "js." + extension);
+                        if (helper.PartialViewExists(jsViewName, model))
+                            helper.RegisterInlineModule("js", jsViewName, model);
+
+                        return res;
+                    }
                 }
-                else if (hasExt)
-                    break;
-            }            
+            }
 
             return null;
         }
@@ -391,7 +403,7 @@ namespace WebEx.Core
             if (mt != null)
             {
                 object res;
-                if (mt != null && helper.ViewData.TryGetValue(WebExModuleExtensions.MakeViewDataKey(mt), out res))
+                if (mt != null && helper.GetStorage().TryGetValue(WebExModuleExtensions.MakeViewDataKey(mt), out res))
                 {
                     IModule m = res as IModule;
                     if (m != null)
@@ -403,15 +415,17 @@ namespace WebEx.Core
                     }
                 }
             }
-
+            
             var r = helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel, moduleInstanceId, args);
-            if (r == null)
+            if (r == null && !moduleName.StartsWith("~"))
             {
-                var curViewPath = helper.GetViewPath();
-                if (!string.IsNullOrEmpty(curViewPath))
                 {
-                    var dir = System.IO.Path.GetDirectoryName(curViewPath);
-                    moduleName = System.IO.Path.Combine(dir, moduleName);
+                    var curViewPath = helper.GetViewPath();
+                    if (!string.IsNullOrEmpty(curViewPath))
+                    {
+                        var dir = System.IO.Path.GetDirectoryName(curViewPath);
+                        moduleName = System.IO.Path.Combine(dir, moduleName);
+                    }
                 }
                 r = helper.RenderModuleManual(moduleName, new ModuleAutoView(view), moduleModel, moduleInstanceId, args);
             }
@@ -423,7 +437,7 @@ namespace WebEx.Core
             string moduleInstanceId = null)
         {
             object res;
-            if (module != null && helper.ViewData.TryGetValue(WebExModuleExtensions.MakeViewDataKey(module), out res))
+            if (module != null && helper.GetStorage().TryGetValue(WebExModuleExtensions.MakeViewDataKey(module), out res))
             {
                 IModule m = res as IModule;
                 if (m != null)
@@ -477,10 +491,10 @@ namespace WebEx.Core
         private static ModuleInstance GetModuleInstance(this HtmlHelper helper, string moduleInstanceId)
         {
             Stack<ModuleInstance> miList = null; object o = null;
-            if (!helper.ViewData.TryGetValue(webexModuleInstance, out o))
+            if (!helper.GetStorage().TryGetValue(webexModuleInstance, out o))
             {
                 miList = new Stack<ModuleInstance>();
-                helper.ViewData[webexModuleInstance] = miList;
+                helper.GetStorage()[webexModuleInstance] = miList;
             }
             else
                 miList = o as Stack<ModuleInstance>;
@@ -499,7 +513,7 @@ namespace WebEx.Core
             var mi = helper.GetCurrentModuleInstance();
             if (mi != null)
             {
-                var instances = helper.ViewData[webexModuleInstance] as Stack<ModuleInstance>;
+                var instances = helper.GetStorage()[webexModuleInstance] as Stack<ModuleInstance>;
                 do
                 {
                     mi = instances.Pop();
@@ -517,7 +531,7 @@ namespace WebEx.Core
         public static ModuleInstance GetCurrentModuleInstance(this HtmlHelper helper)
         {
             Stack<ModuleInstance> miList = null; object o = null;
-            if (helper.ViewData.TryGetValue(webexModuleInstance, out o))
+            if (helper.GetStorage().TryGetValue(webexModuleInstance, out o))
             {
                 miList = o as Stack<ModuleInstance>;
                 if (miList != null && miList.Any())
@@ -566,6 +580,25 @@ namespace WebEx.Core
         public static MvcHtmlString Concat(this MvcHtmlString first, params MvcHtmlString[] strings)
         {
             return MvcHtmlString.Create(first.ToString() + string.Concat(strings.Select(s => s.ToString())));
+        }
+        public static IDictionary GetStorage(this HtmlHelper helper)
+        {
+            return helper.ViewContext.RequestContext.HttpContext.Items;
+        }
+        public static bool TryGetValue(this IDictionary dic, string key, out object val)
+        {
+            val = null;
+            if (dic.Contains(key))
+            {
+                val = dic[key];
+                return true;
+            }
+            return false;
+
+        }
+        public static bool ContainsKey(this IDictionary dic, string key)
+        {
+            return dic.Contains(key);
         }
     }
 }

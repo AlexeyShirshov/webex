@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -60,10 +61,14 @@ namespace WebEx.Core
         {
             return view != null && view.GetType() == typeof(ModuleAutoView);
         }
-        public static IModule GetModule(this ViewDataDictionary viewData, Type module)
+        public static bool IsEmpty(this IModuleView view)
+        {
+            return view == null || string.IsNullOrEmpty(view.Value);
+        }
+        public static IModule GetModule(IDictionary storage, Type module)
         {
             object res;
-            if (module != null && viewData.TryGetValue(MakeViewDataKey(module), out res))
+            if (module != null && storage.TryGetValue(MakeViewDataKey(module), out res))
                 return res as IModule;
 
             return null;
