@@ -1,2 +1,0 @@
-﻿nuget pack "F:\projects\nuget\custom packages\WebEx.Pages\WebEx.Pages.1.0.2.nuspec" -OutputDirectory "F:\projects\nuget\custom packages"
-nuget.exe push 'F:\projects\nuget\custom packages\WebEx.Pages.1.0.2.nupkg' -s http://owa:8001/ webex
