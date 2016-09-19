@@ -1,0 +1,1 @@
+﻿nuget pack "F:\projects\nuget\custom packages\WebEx.Menu\WebEx.Menu.nuspec" -OutputDirectory "F:\projects\nuget\custom packages"
