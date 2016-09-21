@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>WebEx.Core</id>
+    <version>1.0.27.16263</version>
+    <title>WebEx.Core</title>
+    <authors>Alexey Shirshov</authors>
+    <owners>Alexey Shirshov</owners>
+    <projectUrl>http://webex.codeplex.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>WebEx.Core is a core library of WebEx project</description>
+    <copyright>Copyright 2016</copyright>
+    <dependencies>
+      <dependency id="Microsoft.AspNet.Mvc" version="5.2.3" />
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Web" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+<file src="bin\Debug\WebEx.Core.dll" target="lib\net451\WebEx.Core.dll" />
+<file src="F:\projects\nuget\custom packages\web.config.install.xdt" target="content\Views\web.config.install.xdt" />
+<file src="F:\projects\nuget\custom packages\web.config.uninstall.xdt" target="content\Views\web.config.uninstall.xdt" />
+</files>
+</package>
