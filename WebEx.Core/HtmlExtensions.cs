@@ -114,7 +114,7 @@ namespace WebEx.Core
 
             var l = res as List<Tuple<string, string, object>>;
 
-            if (!l.Any((it) => it.Item1 == type && it.Item2 == view))
+            if (!l.Any((it) => it.Item1 == type && it.Item2 == view && object.Equals(it.Item3, model)))
                 l.Add(new Tuple<string, string, object>(type, view, model));
         }
         public static IModule GetModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
