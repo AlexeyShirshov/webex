@@ -155,7 +155,7 @@ namespace WebEx.Core
         }
         #region RenderModule
         public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, IDictionary<string, object> args, 
-            IModuleView view, string moduleInstanceId)
+            IModuleView view, object model, string moduleInstanceId)
         {
             //string.IsNullOrEmpty(view)?(IModuleView)new DefaultView():new ModuleView(view)
             //if (module == null)
@@ -173,8 +173,7 @@ namespace WebEx.Core
                 }
                 else 
                 {
-                    object model = null;
-                    if (modelModule != null)
+                    if (modelModule != null && model == null)
                         model = modelModule.Model;
 
                     var moduleFolder = GetModuleFolder(module);
@@ -411,7 +410,7 @@ namespace WebEx.Core
                         if (string.IsNullOrEmpty(view))
                             view = Contracts.DefaultView;
 
-                        return helper.RenderModule(m, args, m.GetView(view, helper), moduleInstanceId);
+                        return helper.RenderModule(m, args, m.GetView(view, helper), moduleModel, moduleInstanceId);
                     }
                 }
             }
@@ -445,7 +444,7 @@ namespace WebEx.Core
                     if (string.IsNullOrEmpty(view))
                         view = Contracts.DefaultView;
 
-                    return helper.RenderModule(m, args, m.GetView(view, helper), moduleInstanceId);
+                    return helper.RenderModule(m, args, m.GetView(view, helper), null, moduleInstanceId);
                 }
                 //else
                 //    return helper.RenderModuleManual(GetModuleFolder(module), res, view);
@@ -466,7 +465,7 @@ namespace WebEx.Core
                 {
                     (item.view as ModuleAutoView).Ext = "." + viewType;
                 }
-                var r = helper.RenderModule(item.module, null, item.view, null);
+                var r = helper.RenderModule(item.module, null, item.view, null, null);
                 if (r != null)
                     sb.Append(r.ToString());
             }

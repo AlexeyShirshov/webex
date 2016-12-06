@@ -1,0 +1,2 @@
+﻿nuget pack "F:\projects\nuget\custom packages\WebEx.Menu\WebEx.Menu.nuspec" -OutputDirectory "F:\projects\nuget\custom packages"
+nuget.exe push 'F:\projects\nuget\custom packages\WebEx.Menu.1.0.0.nupkg' -s http://owa:8001/ webex
