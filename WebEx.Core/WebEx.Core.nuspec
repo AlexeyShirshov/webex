@@ -2,14 +2,14 @@
 <package>
   <metadata>
     <id>WebEx.Core</id>
-    <version>1.0.29.16340</version>
+    <version>1.0.32.17028</version>
     <title>WebEx.Core</title>
     <authors>Alexey Shirshov</authors>
     <owners>Alexey Shirshov</owners>
     <projectUrl>http://webex.codeplex.com</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>WebEx.Core is a core library of WebEx project</description>
-    <copyright>Copyright 2016</copyright>
+    <copyright>Copyright 2017</copyright>
     <dependencies>
       <dependency id="Microsoft.AspNet.Mvc" version="5.2.3" />
     </dependencies>

@@ -255,6 +255,9 @@ namespace WebEx.Core
                             res = helper.Partial(viewPath, model);
                         }
 
+                        if (model == null)
+                            model = helper.ViewData.Model;
+
                         var cssViewName = viewPath.Replace(extension, "css." + extension);
                         if (helper.PartialViewExists(cssViewName, model))
                             helper.RegisterInlineModule("css", cssViewName, model);
