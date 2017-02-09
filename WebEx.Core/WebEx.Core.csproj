@@ -88,6 +88,7 @@
     <Compile Include="ModuleView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HtmlExtensions.cs" />
+    <Compile Include="RenderModule.cs" />
     <Compile Include="WebExNotFoundModel.cs" />
   </ItemGroup>
   <ItemGroup>

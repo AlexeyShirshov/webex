@@ -18,7 +18,7 @@ namespace WebEx.Core
         IModuleView GetView(string type, HtmlHelper helper);
     }
     /// <summary>
-    /// Module with Model. <see cref="IModule.GetViewOfType"/> should return name of the view in Webex.Modules\<ModuleName> folder
+    /// Module with Model. <see cref="IModule.GetView"/> should return name of the view in Webex.Modules\ModuleName folder
     /// </summary>
     public interface IModuleWithModel : IModule
     {
@@ -28,5 +28,30 @@ namespace WebEx.Core
     {
         IEnumerable<string> GetDependencyByName();
         IEnumerable<Type> GetDependency();
-    }    
+    }
+
+    internal class CachedModule
+    {
+        private readonly IModule _inner;
+
+        internal CachedModule(IModule inner)
+        {
+            _inner = inner;
+        }
+
+        public IModule Inner
+        {
+            get
+            {
+                return _inner;
+            }
+        }
+
+        public IModuleView GetView(string type, HtmlHelper helper)
+        {
+            return _inner.GetView(type, helper);
+        }
+
+        public string Folder { get; set; }
+    }
 }

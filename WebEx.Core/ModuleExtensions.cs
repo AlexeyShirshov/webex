@@ -55,21 +55,29 @@ namespace WebEx.Core
               
         public static bool IsDefault(this IModuleView view)
         {
-            return view != null && view.GetType() == typeof(ModuleDefaultView);
+            return view != null && view is ModuleDefaultView;
         }
         public static bool IsAuto(this IModuleView view)
         {
-            return view != null && view.GetType() == typeof(ModuleAutoView);
+            return view != null && view is ModuleAutoView;
         }
         public static bool IsEmpty(this IModuleView view)
         {
             return view == null || string.IsNullOrEmpty(view.Value);
         }
+        public static IModuleView GetFallBack(this IModuleView view)
+        {
+            return view != null && view is FallBackModuleView ? (view as FallBackModuleView).FallBackView : null;
+        }
         public static IModule GetModule(IDictionary storage, Type module)
+        {
+            return _GetModule(storage, module)?.Inner;
+        }
+        internal static CachedModule _GetModule(IDictionary storage, Type module)
         {
             object res;
             if (module != null && storage.TryGetValue(MakeViewDataKey(module), out res))
-                return res as IModule;
+                return res as CachedModule;
 
             return null;
         }        

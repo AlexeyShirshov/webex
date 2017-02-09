@@ -26,7 +26,7 @@ Namespace PagesModule
         End Property
         Private m_Title As String
     End Class
-    <ModuleAlias("Pages")>
+    <ModuleAlias("Pages"), Dependency("JQuery")>
     Public Class PagesModule
         Implements IModuleWithModel
         'private string _name;

@@ -98,27 +98,27 @@ namespace WebEx.Core
 
             var bestParams = dic.First();
             IEnumerable<Tuple<ConstructorInfo, object[], int[]>> sorted = null;
-            if (dic.Count > 1)
+            //if (dic.Count > 1)
             {
                 sorted = dic.OrderByDescending(it => it.Item2.Count(it2 => it2 != _null)).ToArray();
                 bestParams = sorted.First();
             }
 
-            if (bestParams.Item2.Count(it => it != _null) == bestParams.Item1.GetParameters().Length && bestParams.Item3.Length == 0)
-            {
+            //if (bestParams.Item2.Count(it => it != _null) == bestParams.Item1.GetParameters().Length && bestParams.Item3.Length == 0)
+            //{
 
-            }
-            else if (dic.Count == 1)
-            {
-                for (int i = 0; i < bestParams.Item2.Length; i++)
-                {
-                    if (bestParams.Item2[i] == _null)
-                    {
-                        bestParams.Item2[i] = null;
-                    }
-                }
-            }
-            else
+            //}
+            //else if (dic.Count == 1)
+            //{
+            //    for (int i = 0; i < bestParams.Item2.Length; i++)
+            //    {
+            //        if (bestParams.Item2[i] == _null)
+            //        {
+            //            bestParams.Item2[i] = null;
+            //        }
+            //    }
+            //}
+            //else
             {
                 sorted = sorted.OrderByDescending(it => it.Item2.Count(it2 => it2 != _null)).ThenBy(it => it.Item1.GetParameters().Length).ToArray();
                 foreach (var candidate in sorted)
@@ -285,11 +285,15 @@ namespace WebEx.Core
         }
         public static void RegisterModule(IDictionary storage, Type type, IModule r)
         {
-            storage[WebExModuleExtensions.MakeViewDataKey(type)] = r;
+            storage[WebExModuleExtensions.MakeViewDataKey(type)] = new CachedModule(r);
+        }
+        internal static CachedModule _GetModule(this ControllerBase ctrl, string moduleName, bool ignoreCase = false)
+        {
+            return WebExModuleExtensions._GetModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase));
         }
         public static IModule GetModule(this ControllerBase ctrl, string moduleName, bool ignoreCase = false)
         {
-            return WebExModuleExtensions.GetModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase));
+            return ctrl._GetModule(moduleName, ignoreCase)?.Inner;
         }
     }
 }

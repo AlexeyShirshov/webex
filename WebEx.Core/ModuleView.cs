@@ -26,6 +26,22 @@ namespace WebEx.Core
             }
         }
     }
+    public sealed class FallBackModuleView : IModuleView
+    {
+        private string _str;
+        public FallBackModuleView(string viewName)
+        {
+            _str = viewName;
+        }
+        public string Value
+        {
+            get
+            {
+                return _str;
+            }
+        }
+        public IModuleView FallBackView { get; set; } = new ModuleDefaultView();
+    }
     public sealed class ModuleAutoView : IModuleView
     {
         private string _str;

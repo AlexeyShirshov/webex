@@ -10,5 +10,6 @@ namespace WebEx.Core
     {
         public string InstanceId { get; set; }
         public IDictionary<string, object> Params;
+        public string Folder { get; set; }
     }
 }

@@ -61,7 +61,7 @@ namespace WebEx.Core
 
         public static void RegisterModules(HttpApplicationState appState, string viewExtension = null)
         {
-            appState[WebExHtmlExtensions.webexViewExtension] = viewExtension;
+            appState[WebExHtmlRenderModuleExtensions.webexViewExtension] = viewExtension;
             var modules = GetModules();
             appState[_webexInternalModuleTypes] = modules;
             foreach (var type in modules)
