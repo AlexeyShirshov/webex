@@ -22,7 +22,7 @@ namespace WebEx.Core
 
         public static bool HasModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
         {
-            Type mt = Type.GetType(moduleName, false, ignoreCase);
+            var mt = Type.GetType(moduleName, false, ignoreCase);
             if (mt != null)
             {
                 return helper.GetStorage().ContainsKey(WebExModuleExtensions.MakeViewDataKey(mt));
@@ -117,7 +117,9 @@ namespace WebEx.Core
 
         public static MvcHtmlString Concat(this MvcHtmlString first, params MvcHtmlString[] strings)
         {
+#pragma warning disable RECS0106 // Finds calls to ToString() which would be generated automatically by the compiler
             return MvcHtmlString.Create(first.ToString() + string.Concat(strings.Select(s => s.ToString())));
+#pragma warning restore RECS0106 // Finds calls to ToString() which would be generated automatically by the compiler
         }
         public static IDictionary GetStorage(this HtmlHelper helper)
         {

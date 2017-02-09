@@ -13,14 +13,14 @@ namespace WebEx.Core
     /// <summary>
     /// Catalog of modules
     /// </summary>
-    public class ModulesCatalog
+    public static class ModulesCatalog
     {
         public const string _webexInternalModuleAliases = "webex:modulealiases";
         public const string _webexInternalModuleTypes = "webex:modules";
 
         public static Type[] GetModules(string assemblyPattern = "*webexmodule*.dll")
         {
-            List<Type> r = new List<Type>();
+            var r = new List<Type>();
 
             if (BuildManager.CodeAssemblies != null)
             foreach (var ass in BuildManager.CodeAssemblies.OfType<Assembly>())
@@ -44,7 +44,11 @@ namespace WebEx.Core
                                 r.Add(type);
                         }
                 }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
+#pragma warning disable CS0168 // Variable is declared but never used
                 catch (Exception ex)
+#pragma warning restore CS0168 // Variable is declared but never used
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                 {
 
                 }

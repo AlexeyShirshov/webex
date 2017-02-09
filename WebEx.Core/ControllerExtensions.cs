@@ -17,7 +17,7 @@ namespace WebEx.Core
             if (type == null)
                 return null;
 
-            List<Tuple<ConstructorInfo, object[], int[]>> dic = new List<Tuple<ConstructorInfo, object[], int[]>>();
+            var dic = new List<Tuple<ConstructorInfo, object[], int[]>>();
             foreach (var ctor in type.GetConstructors())
             {
                 var methodParams = ctor.GetParameters();

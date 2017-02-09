@@ -443,7 +443,7 @@ namespace WebEx.Core
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null)
         {
-            Type mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
+            var mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
             if (mt != null)
             {
                 object res;
@@ -500,7 +500,7 @@ namespace WebEx.Core
         public static MvcHtmlString RenderModules(this HtmlHelper helper, string viewType,
             Func<IModule, int> getOrderWeight = null)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var item in helper._GetModules().Select(it => new { module = it, view = it.GetView(viewType, helper) }).
                 Where(it => it.view != null).
                 OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it.module.Inner)).

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WebEx.Core
 {
-    public class Contracts
+    public static class Contracts
     {
         public const string JavascriptView = "js";
         public const string CSSView = "css";

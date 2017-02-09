@@ -13,7 +13,7 @@ namespace WebEx.Core
 
     public sealed class ModuleView : IModuleView
     {
-        private string _str;
+        private readonly string _str;
         public ModuleView(string viewName)
         {
             _str = viewName;
@@ -72,7 +72,7 @@ namespace WebEx.Core
     }
     public sealed class ModuleViewString : IModuleView
     {
-        private string _str;
+        private readonly string _str;
         public ModuleViewString(string str)
         {
             _str = str;

@@ -10,7 +10,7 @@ namespace WebEx.Core
     [AttributeUsage(AttributeTargets.Class, AllowMultiple=false)]
     public sealed class ModuleAliasAttribute : Attribute
     {
-        private string _alias;
+        private readonly string _alias;
         public ModuleAliasAttribute(string alias)
         {
             _alias = alias;
