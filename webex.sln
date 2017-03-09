@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "csharp", "http://localhost:33926", "{C56753A6-1DB3-429F-8000-A96AAE068D51}"
 	ProjectSection(WebsiteProperties) = preProject
@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebEx.Core", "WebEx.Core\We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JQueryWebExModule", "JQueryWebExModule\JQueryWebExModule.csproj", "{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebEx.Auth", "WebEx.Auth\WebEx.Auth.csproj", "{E5239810-5497-4276-A598-06C1556439D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90FBB6A6-D4D3-4A4F-88CC-6D1352538D14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5239810-5497-4276-A598-06C1556439D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5239810-5497-4276-A598-06C1556439D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5239810-5497-4276-A598-06C1556439D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5239810-5497-4276-A598-06C1556439D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

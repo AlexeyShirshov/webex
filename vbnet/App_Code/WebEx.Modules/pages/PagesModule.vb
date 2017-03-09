@@ -28,7 +28,8 @@ Namespace PagesModule
     End Class
     <ModuleAlias("Pages"), Dependency("JQuery")>
     Public Class PagesModule
-        Implements IModuleWithModel
+        Implements IModuleWithModel, IPreRenderFilter, IPostRenderFilter
+
         'private string _name;
         Private _view As String
         Private _page As Page
@@ -39,9 +40,9 @@ Namespace PagesModule
         End Sub
         Private Shared Function CreatePage(page As String) As Page
             Dim title As String = If(String.IsNullOrEmpty(page), "Главная", "О компании")
-            Return New Page() With { _
-                .Name = page, _
-                .Title = title _
+            Return New Page() With {
+                .Name = page,
+                .Title = title
             }
         End Function
 
@@ -58,6 +59,19 @@ Namespace PagesModule
                 Case Else
                     Return New ModuleAutoView(type)
             End Select
+        End Function
+
+        Public Function Exec(helper As HtmlHelper, moduleInstanceId As String, args As IDictionary(Of String, Object), renderedViewName As String, view As IModuleView) As PreRenderFilterResult Implements IPreRenderFilter.Exec
+            If view.IsAuto Then
+                Return New PreRenderFilterResult With {.view = New ModuleViewString("<p>")}
+            End If
+
+        End Function
+
+        Public Function Exec(helper As HtmlHelper, moduleInstanceId As String, args As IDictionary(Of String, Object), renderedViewName As String, view As IModuleView, mainViewResult As MvcHtmlString) As RenderFilterResult Implements IPostRenderFilter.Exec
+            If view.IsAuto Then
+                Return New PreRenderFilterResult With {.view = New ModuleViewString("</p>")}
+            End If
         End Function
     End Class
 End Namespace

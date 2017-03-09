@@ -10,7 +10,7 @@ namespace WebEx.Core
 {
     public class DependencyComparer : IComparer<IModule>
     {
-        private HttpApplicationStateBase _vd;
+        private readonly HttpApplicationStateBase _vd;
         public DependencyComparer()
         {
 
