@@ -21,7 +21,7 @@ namespace WebEx.Core
             foreach (var ctor in type.GetConstructors())
             {
                 var methodParams = ctor.GetParameters();
-                if (methodParams.Count() == 0 && (args == null || args.Length == 0))
+                if (!methodParams.Any() && (args == null || args.Length == 0))
                 {
                     return Activator.CreateInstance(type);
                 }

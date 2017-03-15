@@ -28,7 +28,7 @@ Namespace PagesModule
     End Class
     <ModuleAlias("Pages"), Dependency("JQuery")>
     Public Class PagesModule
-        Implements IModuleWithModel, IPreRenderFilter, IPostRenderFilter
+        Implements IModuleWithModel, IPreRenderFilter ', IPostRenderFilter
 
         'private string _name;
         Private _view As String
@@ -63,15 +63,14 @@ Namespace PagesModule
 
         Public Function Exec(helper As HtmlHelper, moduleInstanceId As String, args As IDictionary(Of String, Object), renderedViewName As String, view As IModuleView) As PreRenderFilterResult Implements IPreRenderFilter.Exec
             If view.IsAuto Then
-                Return New PreRenderFilterResult With {.view = New ModuleViewString("<p>")}
-            End If
-
-        End Function
-
-        Public Function Exec(helper As HtmlHelper, moduleInstanceId As String, args As IDictionary(Of String, Object), renderedViewName As String, view As IModuleView, mainViewResult As MvcHtmlString) As RenderFilterResult Implements IPostRenderFilter.Exec
-            If view.IsAuto Then
-                Return New PreRenderFilterResult With {.view = New ModuleViewString("</p>")}
+                Return New PreRenderFilterResult With {.View = New ModuleViewString(Function(model, id, args2) String.Format("<div id='{0}'>", id)), .PostRenderView = New ModuleViewString("</div>")}
             End If
         End Function
+
+        'Public Function Exec(helper As HtmlHelper, moduleInstanceId As String, args As IDictionary(Of String, Object), renderedViewName As String, view As IModuleView, mainViewResult As MvcHtmlString) As RenderFilterResult Implements IPostRenderFilter.Exec
+        '    If view.IsAuto Then
+
+        '    End If
+        'End Function
     End Class
 End Namespace

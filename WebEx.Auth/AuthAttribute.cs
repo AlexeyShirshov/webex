@@ -12,6 +12,7 @@ namespace WebEx.Auth
         public IEnumerable<string> AllowRoles { get; set; }
         public IEnumerable<string> DenyUsers { get; set; }
         public IEnumerable<string> DenyRoles { get; set; }
+        public bool AllowAnonym { get; set; } = true;
         public virtual PreRenderFilterResult Exec(HtmlHelper helper, string moduleInstanceId, IDictionary<string, object> args, string renderedViewName, IModuleView view)
         {
             if (!IsAuthenticated(helper, moduleInstanceId, args, renderedViewName, view))
@@ -24,11 +25,14 @@ namespace WebEx.Auth
         {
             var curUser = helper.ViewContext.HttpContext.User;
 
-            if (curUser == null)
+            bool res = true;
+
+            if (curUser == null && !AllowAnonym)
                 return false;
 
             if (DenyUsers != null)
             {
+                if (curUser != null)
                 foreach (var user in DenyUsers)
                 {
                     if (user == curUser.Identity.Name)
@@ -38,6 +42,7 @@ namespace WebEx.Auth
 
             if (DenyRoles != null)
             {
+                if (curUser != null)
                 foreach (var role in DenyRoles)
                 {
                     if (curUser.IsInRole(role))
@@ -45,15 +50,13 @@ namespace WebEx.Auth
                 }
             }
 
-            bool res = true;
-
             if (AllowRoles != null)
             {                
                 foreach (var role in AllowRoles)
                 {
                     res = false;
 
-                    if (curUser.IsInRole(role))
+                    if (curUser != null && curUser.IsInRole(role))
                         return true;
                 }
             }
@@ -64,7 +67,7 @@ namespace WebEx.Auth
                 {
                     res = false;
 
-                    if (user == curUser.Identity.Name)
+                    if (curUser != null && user == curUser.Identity.Name)
                         return true;
                 }
             }

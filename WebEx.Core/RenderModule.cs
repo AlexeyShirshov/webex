@@ -256,7 +256,7 @@ namespace WebEx.Core
                 foreach (var extension in exts)
                 {
                     var viewPath = moduleFolder.TrimEnd('/');
-                    if (view.IsDefault())
+                    if (view.IsDefault() || (view.IsAuto() && view.IsEmpty()))
                     {
                         viewPath += "/" + defView;
                     }
@@ -327,7 +327,7 @@ namespace WebEx.Core
             dontRender = false;
             StringBuilder sbPre = new StringBuilder();
             StringBuilder sbPost = new StringBuilder();
-
+            Stack<PreRenderFilterResult> postRender = new Stack<PreRenderFilterResult>();
             if (preRenderFilters?.Any() == true)
             {
                 List<PreRenderFilterResult> fr = new List<PreRenderFilterResult>();
@@ -346,20 +346,25 @@ namespace WebEx.Core
                 dontRender = fr.Any(it => /*it.FilterResultMode == PreRenderFilterResultModeEnum.DontRender || it.FilterResultMode == PreRenderFilterResultModeEnum.ReplaceRender*/ it.DontRenderMainView);
                 foreach (var filterRes in fr/*.Where(it=>it.FilterResultMode != PreRenderFilterResultModeEnum.DontRender)*/)
                 {
-                    var newModel = filterRes.model != null && filterRes.model != model;
-                    var newView = filterRes.view != null && filterRes.view != view;
+                    var newModel = filterRes.Model != null && filterRes.Model != model;
+                    var newView = filterRes.View != null && filterRes.View != view;
                     if (newModel || newView)
                     {
                         if (!filterRes.Add2RenderIfMainViewRendered || !dontRender)
                         {
                             object frModel = model;
-                            if (newModel) frModel = filterRes.model;
+                            if (newModel) frModel = filterRes.Model;
                             IModuleView frView = view;
-                            if (newView) frView = filterRes.view;
+                            if (newView) frView = filterRes.View;
                             MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
                             if (frRes != null)
                             {
                                 sbPre.Append(frRes.ToString());
+
+                                if (filterRes.PostRenderView != null && filterRes.PostRenderView != view)
+                                {
+                                    postRender.Push(filterRes);
+                                }
                             }
                         }
                     }
@@ -375,6 +380,18 @@ namespace WebEx.Core
             }
             else
                 res = null;
+
+            foreach (var filter in postRender)
+            {
+                object frModel = model;
+                if (filter.Model != null && filter.Model != model) frModel = filter.Model;
+                var frView = filter.PostRenderView;
+                MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
+                if (frRes != null)
+                {
+                    sbPost.Append(frRes.ToString());
+                }
+            }
 
             if (postRenderFilters?.Any() == true)
             {
@@ -393,16 +410,16 @@ namespace WebEx.Core
 
                 foreach (var filterRes in fr)
                 {
-                    var newModel = filterRes.model != null && filterRes.model != model;
-                    var newView = filterRes.view != null && filterRes.view != view;
+                    var newModel = filterRes.Model != null && filterRes.Model != model;
+                    var newView = filterRes.View != null && filterRes.View != view;
                     if (newModel || newView)
                     {
                         if (!filterRes.Add2RenderIfMainViewRendered || !dontRender)
                         {
                             object frModel = model;
-                            if (newModel) frModel = filterRes.model;
+                            if (newModel) frModel = filterRes.Model;
                             IModuleView frView = view;
-                            if (newView) frView = filterRes.view;
+                            if (newView) frView = filterRes.View;
                             MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
                             if (frRes != null)
                             {
@@ -446,8 +463,9 @@ namespace WebEx.Core
             var mstr = view as ModuleViewString;
             if (mstr != null)
             {
-                helper.RenderModuleMainViewWithFilters(moduleFolder, view, model, out res, moduleInstanceId, args, null, out mainViewDidntRender, () => new MvcHtmlString(mstr.Value),
-                           preRenderFilters, postRenderFilters);
+                helper.RenderModuleMainViewWithFilters(moduleFolder, view, model, out res, moduleInstanceId, args, null, out mainViewDidntRender, 
+                    () => new MvcHtmlString(mstr.GetValue(model, moduleInstanceId, args)),
+                    preRenderFilters, postRenderFilters);
                 return true;
             }
 
@@ -613,7 +631,12 @@ namespace WebEx.Core
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
-            return helper.RenderModuleInternal(module, args, view, model, moduleInstanceId, null, preRenderFilters, postRenderFilters);
+            if (module == null)
+                throw new ArgumentNullException(nameof(module));
+
+            object res;
+            helper.GetStorage().TryGetValue(WebExModuleExtensions.MakeViewDataKey(module.GetType()), out res);
+            return helper.RenderModuleInternal(module, args, view, model, moduleInstanceId, res as CachedModule, preRenderFilters, postRenderFilters);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName)
         {
@@ -755,7 +778,7 @@ namespace WebEx.Core
             return null;
         }
         public static MvcHtmlString RenderModules(this HtmlHelper helper, string viewType,
-            Func<IModule, int> getOrderWeight = null,
+            Func<IModule, int> getOrderWeight,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
@@ -782,7 +805,93 @@ namespace WebEx.Core
             }
             return MvcHtmlString.Create(sb.ToString());
         }
+        public static MvcHtmlString RenderModules(this HtmlHelper helper, string viewType,
+            IDictionary<IModule, int> moduleOrderWeight,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            return helper.RenderModules(viewType, moduleOrderWeight == null ? (Func<IModule, int>)null : (m) => moduleOrderWeight[m], preRenderFilters, postRenderFilters);
+        }
+        public static MvcHtmlString RenderModules(this HtmlHelper helper, string viewType,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            return helper.RenderModules(viewType, (Func<IModule, int>)null, preRenderFilters, postRenderFilters);
+        }
+        public static MvcHtmlString RenderModules(this HtmlHelper helper, IEnumerable<IModule> modules, 
+            IDictionary<string, object> args = null,
+            string view = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            var sb = new StringBuilder();
+            foreach (var module in modules)
+            {
+                var r = helper.RenderModule(module, args, module.GetView(view, helper), null, null, preRenderFilters, postRenderFilters);
+                if (r != null)
+                    sb.Append(r.ToString());
+            }
+            return MvcHtmlString.Create(sb.ToString());
+        }
+        public static MvcHtmlString RenderModules(this HtmlHelper helper, IEnumerable<IModule> modules,
+            string view,
+            IDictionary<string, object> args = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            return helper.RenderModules(modules, args, view, preRenderFilters, postRenderFilters);
+        }
+        public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder,
+            IDictionary<string, object> args = null,
+            string view = null,
+            string pluginView = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            var folders = new List<string>();
+            folders.Add("~/Views/" + ModulesFolder);
+            var curIns = helper.GetCurrentModuleInstance();
+            if (curIns != null)
+                folders.Insert(0, curIns.Folder);
 
+            var pv = string.IsNullOrEmpty(pluginView) ? view : pluginView;
+            foreach (var rootFolder in folders)
+            {
+                var moduleFolder = string.Format("{0}/{1}", rootFolder, modulesFolder);
+                var moduleRootPath = helper.ViewContext.HttpContext.Server.MapPath(moduleFolder);
+                if (System.IO.Directory.Exists(moduleRootPath))
+                {
+                    var sb = new StringBuilder();
+                    bool first = true;
+                    foreach (var module in System.IO.Directory.EnumerateDirectories(moduleRootPath))
+                    {
+                        var moduleName = System.IO.Path.GetFileName(module);
+                        var r = helper.RenderModule(System.IO.Path.Combine(moduleFolder, moduleName), args, view, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters);
+                        if (r != null)
+                        {
+                            if (first)
+                            {
+                                var pre = helper.RenderModule(moduleFolder, args, string.IsNullOrEmpty(pv) ? "pre" : "pre-" + pv, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters);
+                                if (pre != null)
+                                    sb.Append(pre.ToString());
+                            }
+                            sb.Append(r.ToString());
+                            first = false;
+                        }
+                    }
+
+                    if (sb.Length > 0)
+                    {
+                        var post = helper.RenderModule(moduleFolder, args, string.IsNullOrEmpty(pv) ? "post" : "post-" + pv, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters);
+                        if (post != null)
+                            sb.Append(post.ToString());
+                    }
+                    return new MvcHtmlString(sb.ToString());
+                }
+            }
+
+            return MvcHtmlString.Empty;
+        }
         #region ModuleInstance
         private static void PrepareRender(this HtmlHelper helper, string moduleInstanceId, string viewPath, IDictionary<string, object> args)
         {

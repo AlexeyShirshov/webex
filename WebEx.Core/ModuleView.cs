@@ -73,20 +73,41 @@ namespace WebEx.Core
     public sealed class ModuleViewString : IModuleView
     {
         private readonly string _str;
+        private readonly Func<object, string, IDictionary<string, object>, string> _getValue;
+        private bool _strSet;
+
         public ModuleViewString(string str)
         {
             _str = str;
+            _strSet = true;
         }
         public ModuleViewString(string format, params object[] args)
         {
             _str = string.Format(format, args);
+            _strSet = true;
+        }
+        public ModuleViewString(Func<object, string, IDictionary<string, object>, string> getString)
+        {
+            _getValue = getString;
         }
         public string Value
         {
             get
             {
-                return _str;
+                if (!_strSet)
+                    throw new NotSupportedException("Use GetValue method");
+                else
+                    return _str;
             }
+        }
+        public string GetValue(object model, string moduleInstanceId, IDictionary<string, object> args)
+        {
+            if (_strSet)
+                return _str;
+            else if (_getValue != null)
+                return _getValue(model, moduleInstanceId, args);
+
+            return null;
         }
     }
     public sealed class ModuleDefaultView : IModuleView

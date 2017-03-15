@@ -18,8 +18,8 @@ namespace WebEx.Core
     }
     public class RenderFilterResult
     {
-        public IModuleView view { get; set; }
-        public object model { get; set; }
+        public IModuleView View { get; set; }
+        public object Model { get; set; }
         public bool Add2RenderIfMainViewRendered { get; set; }
     }
     //public enum PreRenderFilterResultModeEnum
@@ -35,6 +35,7 @@ namespace WebEx.Core
         public static PreRenderFilterResult DontRender = new PreRenderFilterResult() { DontRenderMainView = true };
         //public PreRenderFilterResultModeEnum FilterResultMode { get; set; }
         public bool DontRenderMainView { get; set; }
+        public IModuleView PostRenderView { get; set; }
     }
 
     public interface IPostRenderFilter
