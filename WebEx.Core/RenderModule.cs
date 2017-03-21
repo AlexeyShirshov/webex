@@ -249,20 +249,32 @@ namespace WebEx.Core
 
             //support for regular partial views
             var hasExt = !string.IsNullOrEmpty(System.IO.Path.GetExtension(moduleFolder));
-            if (hasExt) exts = new[] { System.IO.Path.GetExtension(moduleFolder).Trim('.') };
             var defViews = new[] { "index", "default" };
+            if (hasExt)
+            {
+                exts = new[] { System.IO.Path.GetExtension(moduleFolder).Trim('.') };
+                //defViews = new[] { System.IO.Path.GetFileName(moduleFolder) };
+                defViews = new[] { string.Empty };
+            }
+            else
+            {
+                defViews = new[] { string.Empty }.Concat(defViews).ToArray();
+            }
             foreach (var defView in defViews)
             {
                 foreach (var extension in exts)
                 {
                     var viewPath = moduleFolder.TrimEnd('/');
-                    if (view.IsDefault() || (view.IsAuto() && view.IsEmpty()))
+                    if (!string.IsNullOrEmpty(defView))
                     {
-                        viewPath += "/" + defView;
-                    }
-                    else if (!view.IsEmpty())
-                    {
-                        viewPath += "/" + view.Value;
+                        if (view.IsDefault() || (view.IsAuto() && view.IsEmpty()))
+                        {
+                            viewPath += "/" + defView;
+                        }
+                        else if (!view.IsEmpty())
+                        {
+                            viewPath += "/" + view.Value;
+                        }
                     }
 
                     if (!hasExt)

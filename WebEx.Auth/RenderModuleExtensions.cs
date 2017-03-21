@@ -185,7 +185,7 @@ namespace WebEx.Auth
             IEnumerable<string> DenyUsers = null,
             IEnumerable<string> DenyRoles = null)
         {
-            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowUsers, AllowRoles, DenyUsers, DenyRoles, null, null, false, null);
+            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowRoles, AllowUsers, DenyUsers, DenyRoles, null, null, false, null);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view,
             AuthorizeAttribute auth,
@@ -206,7 +206,7 @@ namespace WebEx.Auth
             IEnumerable<string> DenyRoles = null,
             object moduleModel = null, string moduleInstanceId = null)
         {
-            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowUsers, AllowRoles, DenyUsers, DenyRoles, view, moduleModel, false, moduleInstanceId);
+            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowRoles, AllowUsers, DenyUsers, DenyRoles, view, moduleModel, false, moduleInstanceId);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, object moduleModel, AuthorizeAttribute auth, string moduleInstanceId = null)
         {
@@ -223,7 +223,7 @@ namespace WebEx.Auth
             IEnumerable<string> DenyRoles = null,
             string moduleInstanceId = null)
         {
-            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowUsers, AllowRoles, DenyUsers, DenyRoles, null, moduleModel, false, moduleInstanceId);
+            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, AllowRoles, AllowUsers, DenyUsers, DenyRoles, null, moduleModel, false, moduleInstanceId);
         }
         public static MvcHtmlString RenderModules(this HtmlHelper helper, IEnumerable<IModule> modules, AuthorizeAttribute auth,
             IDictionary<string, object> args = null,
@@ -265,7 +265,7 @@ namespace WebEx.Auth
             IEnumerable<string> DenyRoles = null,
             IDictionary<string, object> args = null)
         {
-            return helper.RenderModules(modules, AllowUsers, AllowRoles, DenyUsers, DenyRoles, args, view);
+            return helper.RenderModules(modules, AllowRoles, AllowUsers, DenyUsers, DenyRoles, args, view);
         }
         public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder, AuthorizeAttribute auth,
             IDictionary<string, object> args = null,
