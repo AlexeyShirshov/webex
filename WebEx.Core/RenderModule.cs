@@ -489,6 +489,8 @@ namespace WebEx.Core
 
             foreach (var rootFolder in folders)
             {
+                var curView = view;
+
                 string mPath = modulePath;
                 if (string.IsNullOrEmpty(mPath))
                 {
@@ -498,14 +500,14 @@ namespace WebEx.Core
                 l1:
                 string realViewName = null;
                 string extView = string.Empty;
-                if (view.IsDefault())
+                if (curView.IsDefault())
                     realViewName = "index";
-                else if (view != null)
+                else if (curView != null)
                 {
-                    realViewName = view.Value;
-                    if (view.IsAuto())
+                    realViewName = curView.Value;
+                    if (curView.IsAuto())
                     {
-                        extView = (view as ModuleAutoView).Ext;
+                        extView = (curView as ModuleAutoView).Ext;
                     }
                 }
 
@@ -524,13 +526,13 @@ namespace WebEx.Core
 
                     if (helper.PartialViewExists(viewNameInner, model))
                     {
-                        helper.RenderModuleMainViewWithFilters(moduleFolder, view, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model),
+                        helper.RenderModuleMainViewWithFilters(moduleFolder, curView, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model),
                             preRenderFilters, postRenderFilters);
                         renderedViewName = viewNameInner;
 
                         return true;
                     }
-                    else if (view.IsDefault() || (view.IsAuto() && view != null && (string.IsNullOrEmpty(view.Value) || view.Value == Contracts.DefaultView)))
+                    else if (curView.IsDefault() || (curView.IsAuto() && curView != null && (string.IsNullOrEmpty(curView.Value) || curView.Value == Contracts.DefaultView)))
                     {
                         realViewName = "default";
                         viewNameInner = string.Format("{0}/{1}{3}.{2}",
@@ -540,7 +542,7 @@ namespace WebEx.Core
                             extView);       //3
                         if (helper.PartialViewExists(viewNameInner, model))
                         {
-                            helper.RenderModuleMainViewWithFilters(moduleFolder, view, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model), 
+                            helper.RenderModuleMainViewWithFilters(moduleFolder, curView, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model), 
                                 preRenderFilters, postRenderFilters);
                             renderedViewName = viewNameInner;
                             return true;
@@ -548,15 +550,15 @@ namespace WebEx.Core
                     }
                     else
                     {
-                        var fbView = view.GetFallBack();
+                        var fbView = curView.GetFallBack();
                         if (fbView != null)
                         {
-                            view = fbView;
+                            curView = fbView;
                             goto l1;
                         }
                     }
 
-                    if (TryGetProp(model, view, ref val) && !string.IsNullOrEmpty(val))
+                    if (TryGetProp(model, curView, ref val) && !string.IsNullOrEmpty(val))
                     {
                         res = new MvcHtmlString(val);
                         return true;
