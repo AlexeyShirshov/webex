@@ -125,7 +125,22 @@ namespace WebEx.Core
                 {
                     if (candidate.Item3.Length == 0)
                     {
-
+                        for (int i = 0; i < candidate.Item2.Length; i++)
+                        {
+                            if (candidate.Item2[i] == _null)
+                            {
+                                var p = candidate.Item1.GetParameters()[i];
+                                var mtype = p.ParameterType;
+                                if (mapTypes != null)
+                                {
+                                    var o = mapTypes(mtype, null);
+                                    if (o != null)
+                                    {
+                                        candidate.Item2[i] = o;
+                                    }
+                                }
+                            }
+                        }
                     }
                     else
                     {
