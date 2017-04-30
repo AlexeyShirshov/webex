@@ -170,6 +170,9 @@ namespace WebEx.Core
             IEnumerable<IPreRenderFilter> preRenderFilters,
             IEnumerable<IPostRenderFilter> postRenderFilters)
         {
+            if (model == null)
+                model = helper.ViewData.Model;
+
             var exts = new string[] { };
             var ext = GetViewExtension(helper.ViewContext.HttpContext.Application);
             if (string.IsNullOrEmpty(ext))
@@ -298,9 +301,6 @@ namespace WebEx.Core
 
                         if (!mainViewDidntRender)
                         {
-                            if (model == null)
-                                model = helper.ViewData.Model;
-
                             var cssViewName = viewPath.Replace(extension, "css." + extension);
                             if (helper.PartialViewExists(cssViewName, model))
                                 helper.RegisterInlineModule("css", cssViewName, model);
