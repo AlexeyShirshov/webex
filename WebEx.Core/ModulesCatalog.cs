@@ -10,6 +10,11 @@ using System.Web.Hosting;
 
 namespace WebEx.Core
 {
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple =false)]
+    public class ModuleContainerAttribute : Attribute
+    {
+
+    }
     /// <summary>
     /// Catalog of modules
     /// </summary>
@@ -18,7 +23,11 @@ namespace WebEx.Core
         public const string _webexInternalModuleAliases = "webex:modulealiases";
         public const string _webexInternalModuleTypes = "webex:modules";
 
-        public static Type[] GetModules(string assemblyPattern = "*webexmodule*.dll")
+        public static Type[] GetModulesByAttribute()
+        {
+            return GetModules("*.dll", true);
+        }
+        public static Type[] GetModules(string assemblyPattern = "*webexmodule*.dll", bool checkAttribute = false)
         {
             var r = new List<Type>();
 
@@ -38,11 +47,19 @@ namespace WebEx.Core
                 {
                     var ass = Assembly.LoadFile(file);
                     if (ass != null)
+                    {
+                        if (checkAttribute)
+                        {
+                            if (ass.GetCustomAttribute<ModuleContainerAttribute>() == null)
+                                continue;
+                        }
+
                         foreach (var type in ass.GetTypes())
                         {
                             if (typeof(IModule).IsAssignableFrom(type))
                                 r.Add(type);
                         }
+                    }
                 }
 #pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
 #pragma warning disable CS0168 // Variable is declared but never used
@@ -65,25 +82,37 @@ namespace WebEx.Core
 
         public static void RegisterModules(HttpApplicationState appState, string viewExtension = null)
         {
+            RegisterModules(appState, GetModules(), viewExtension);
+
+        }
+        public static void RegisterModules(HttpApplicationState appState, Type[] modules, string viewExtension = null)
+        {
             appState[WebExHtmlRenderModuleExtensions.webexViewExtension] = viewExtension;
-            var modules = GetModules();
             appState[_webexInternalModuleTypes] = modules;
             foreach (var type in modules)
             {
-                var attr = type.GetCustomAttribute<ModuleAliasAttribute>();
-                string alias = null;
-                if (attr != null)
-                    alias = attr.Alias;
-
-                if (string.IsNullOrEmpty(alias))
-                {
-                    alias = type.Name;
-                    if (alias.EndsWith("module", StringComparison.InvariantCultureIgnoreCase))
-                        alias = alias.Substring(0, alias.Length - 6);
-                }
+                string alias = GetModuleName(type);
                 appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
             }
         }
+
+        public static string GetModuleName(Type type)
+        {
+            var attr = type.GetCustomAttribute<ModuleAliasAttribute>();
+            string alias = null;
+            if (attr != null)
+                alias = attr.Alias;
+
+            if (string.IsNullOrEmpty(alias))
+            {
+                alias = type.Name;
+                if (alias.EndsWith("module", StringComparison.InvariantCultureIgnoreCase))
+                    alias = alias.Substring(0, alias.Length - 6);
+            }
+
+            return alias;
+        }
+
         public static void SetModuleAlias(HttpApplicationState appState, Type module, string alias)
         {
             if (module == null || string.IsNullOrEmpty(alias))

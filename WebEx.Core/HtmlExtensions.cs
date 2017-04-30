@@ -37,11 +37,15 @@ namespace WebEx.Core
         }
         public static IEnumerable<IModule> GetModules(this HtmlHelper helper)
         {
-            return helper._GetModules().Select(it => it.Inner);
+            return _GetModules(helper.GetStorage()).Select(it => it.Inner);
         }
-        internal static IEnumerable<CachedModule> _GetModules(this HtmlHelper helper)
+        public static IEnumerable<IModule> GetModules(IDictionary items)
         {
-            foreach (DictionaryEntry item in helper.ViewContext.RequestContext.HttpContext.Items)
+            return _GetModules(items).Select(it => it.Inner);
+        }
+        internal static IEnumerable<CachedModule> _GetModules(IDictionary items)
+        {
+            foreach (DictionaryEntry item in items)
             {
                 if (item.Key.ToString().StartsWith(WebExModuleExtensions._webexInternalModuleInstances, StringComparison.Ordinal))
                 {

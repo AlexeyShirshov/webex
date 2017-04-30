@@ -274,7 +274,7 @@ namespace WebEx.Core
 
             if (r != null)
             {
-                RegisterModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, type, r);
+                RegisterModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, r);
             }
 
             return r;
@@ -298,9 +298,23 @@ namespace WebEx.Core
                     LoadModule(ctrl, module, args);
                 }
         }
-        public static void RegisterModule(IDictionary storage, Type type, IModule r)
+        public static IEnumerable<T> LoadModules<T>(this ControllerBase ctrl, params object[] args)
         {
-            storage[WebExModuleExtensions.MakeViewDataKey(type)] = new CachedModule(r);
+            var modules = ctrl.ControllerContext.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
+            if (modules != null)
+                foreach (var module in modules)
+                {
+                    if (typeof(T).IsAssignableFrom(module))
+                        yield return (T)LoadModule(ctrl, module, args);
+                }
+        }
+        public static void RegisterModule(IDictionary storage, IModule r)
+        {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+            if (storage == null)
+                throw new ArgumentNullException(nameof(storage));
+            storage[WebExModuleExtensions.MakeViewDataKey(r.GetType())] = new CachedModule(r);
         }
         internal static CachedModule _GetModule(this ControllerBase ctrl, string moduleName, bool ignoreCase = false)
         {

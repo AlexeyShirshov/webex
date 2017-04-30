@@ -80,6 +80,13 @@ namespace WebEx.Core
                 return res as CachedModule;
 
             return null;
-        }        
+        }
+        public static string GetModuleName(this IModule module)
+        {
+            if (module == null)
+                throw new ArgumentNullException(nameof(module));
+
+            return ModulesCatalog.GetModuleName(module.GetType());
+        }
     }
 }
