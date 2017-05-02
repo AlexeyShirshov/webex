@@ -45,7 +45,7 @@ namespace WebEx.Core
             {
                 try
                 {
-                    var ass = Assembly.LoadFile(file);
+                    var ass = Assembly.Load(File.ReadAllBytes(file));
                     if (ass != null)
                     {
                         if (checkAttribute)

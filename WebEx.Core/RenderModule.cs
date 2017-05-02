@@ -50,7 +50,7 @@ namespace WebEx.Core
             if (model == null)
                 return false;
 
-            if (view == null || string.IsNullOrEmpty(view.Value) || view.Value == Contracts.DefaultView)
+            if (view == null || view.IsDefault() || string.IsNullOrEmpty(view.Value))
                 return false;
 
             var props = from k in model.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.GetProperty)
@@ -834,6 +834,8 @@ namespace WebEx.Core
 
             return null;
         }
+
+        #region Render modules
         public static MvcHtmlString RenderModules(this HtmlHelper helper, string viewType,
             Func<IModule, int> getOrderWeight,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
@@ -898,6 +900,9 @@ namespace WebEx.Core
         {
             return helper.RenderModules(modules, args, view, preRenderFilters, postRenderFilters);
         }
+
+        #endregion
+
         public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder,
             IDictionary<string, object> args = null,
             string view = null,
@@ -957,6 +962,7 @@ namespace WebEx.Core
 
             return MvcHtmlString.Empty;
         }
+        
         #region ModuleInstance
         private static void PrepareRender(this HtmlHelper helper, string moduleInstanceId, string viewPath, IDictionary<string, object> args)
         {
