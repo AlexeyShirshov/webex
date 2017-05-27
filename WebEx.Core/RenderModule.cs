@@ -155,6 +155,11 @@ namespace WebEx.Core
                         if (!string.IsNullOrEmpty(curViewPath))
                         {
                             var dir = System.IO.Path.GetDirectoryName(curViewPath);
+                            var curView = System.IO.Path.GetFileNameWithoutExtension(curViewPath);
+
+                            if (string.Compare(curView, moduleFolder, StringComparison.InvariantCultureIgnoreCase) == 0)
+                                return null;
+
                             moduleFolder = System.IO.Path.Combine(dir, moduleFolder);
                         }
                         r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, cm, model, moduleInstanceId, args, preFilters, postFilters);
@@ -776,6 +781,11 @@ namespace WebEx.Core
                     if (!string.IsNullOrEmpty(curViewPath))
                     {
                         var dir = System.IO.Path.GetDirectoryName(curViewPath);
+                        var curView = System.IO.Path.GetFileNameWithoutExtension(curViewPath);
+
+                        if (string.Compare(curView, moduleName, StringComparison.InvariantCultureIgnoreCase) == 0)
+                            return null;
+
                         moduleName = System.IO.Path.Combine(dir, moduleName);
                     }
                 }
