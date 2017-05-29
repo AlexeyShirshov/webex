@@ -43,7 +43,7 @@ namespace WebEx.Core
         }
         private static string GetModuleFolder(Type module)
         {
-            return GetModuleFolder(module.Name);
+            return GetModuleFolder(ModulesCatalog.GetModuleName(module));
         }
         private static bool TryGetProp(object model, IModuleView view, ref string val)
         {
@@ -199,7 +199,7 @@ namespace WebEx.Core
                             cm.Folder = System.IO.Path.GetDirectoryName(viewName);
 
                         var cssViewName = viewName.Replace(extension, "css." + extension);
-                        if ((cm == null || cm.GetView(Contracts.CSSView, helper) == null || cm.GetView(Contracts.CSSView, helper).IsAuto()))
+                        if ((cm == null || cm.GetView(Contracts.CSSView, helper) == null /*|| cm.GetView(Contracts.CSSView, helper).IsAuto()*/))
                         {
                             if (helper.PartialViewExists(cssViewName, model))
                                 helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model);
@@ -226,7 +226,7 @@ namespace WebEx.Core
                         }
 
                         var jsViewName = viewName.Replace(extension, "js." + extension);
-                        if ((cm == null || cm.GetView(Contracts.JavascriptView, helper) == null) || cm.GetView(Contracts.JavascriptView, helper).IsAuto())
+                        if ((cm == null || cm.GetView(Contracts.JavascriptView, helper) == null /*|| cm.GetView(Contracts.JavascriptView, helper).IsAuto()*/))
                         {
                             if (helper.PartialViewExists(jsViewName, model))
                                 helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model);
