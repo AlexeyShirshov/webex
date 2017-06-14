@@ -61,6 +61,11 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>for /f "delims=" %25%25a in ('powershell -Command "&amp;{(Get-Command 'set version lib.ps1'^).Source}"') do set "svlpath=%25%25a"
+for /f "delims=" %25%25a in ('powershell -Command "&amp;{(Get-Command 'set version ref.ps1'^).Source}"') do set "svrpath=%25%25a"
+powershell -file "%25svrpath%25" -project "$(ProjectPath)" -configuration $(ConfigurationName) -assemblies "WebEx.Core"</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

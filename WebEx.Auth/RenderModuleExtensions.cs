@@ -269,27 +269,24 @@ namespace WebEx.Auth
         }
         public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder, AuthorizeAttribute auth,
             IDictionary<string, object> args = null,
-            string view = null,
-            string pluginView = null)
+            string view = null)
         {
-            return helper.RenderModulesFolder(modulesFolder, args, view, pluginView, new[] { auth }, null);
+            return helper.RenderModulesFolder(modulesFolder, args, view, new[] { auth }, null);
         }
         public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder, bool allowAnonym,
             IDictionary<string, object> args = null,
-            string view = null,
-            string pluginView = null)
+            string view = null)
         {
-            return helper.RenderModulesFolder(modulesFolder, args, view, pluginView, new[] { new AuthorizeAttribute { AllowAnonym = allowAnonym } }, null);
+            return helper.RenderModulesFolder(modulesFolder, args, view, new[] { new AuthorizeAttribute { AllowAnonym = allowAnonym } }, null);
         }
         public static MvcHtmlString RenderModulesFolder(this HtmlHelper helper, string modulesFolder, IEnumerable<string> AllowRoles,
             IEnumerable<string> AllowUsers = null,
             IEnumerable<string> DenyUsers = null,
             IEnumerable<string> DenyRoles = null,
             IDictionary<string, object> args = null,
-            string view = null,
-            string pluginView = null)
+            string view = null)
         {
-            return helper.RenderModulesFolder(modulesFolder, args, view, pluginView, new[] { new AuthorizeAttribute { AllowUsers = AllowUsers, AllowRoles = AllowRoles, DenyUsers = DenyUsers, DenyRoles = DenyRoles } }, null);
+            return helper.RenderModulesFolder(modulesFolder, args, view, new[] { new AuthorizeAttribute { AllowUsers = AllowUsers, AllowRoles = AllowRoles, DenyUsers = DenyUsers, DenyRoles = DenyRoles } }, null);
         }
     }
 }

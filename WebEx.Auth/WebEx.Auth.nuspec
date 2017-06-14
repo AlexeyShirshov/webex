@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>WebEx.Auth</id>
-    <version>1.0.5.17076</version>
+    <version>1.0.8.17165</version>
     <title>WebEx.Auth</title>
     <authors>Alexey Shirshov</authors>
     <owners>Alexey Shirshov</owners>
@@ -12,7 +12,7 @@
     <copyright>Copyright 2017</copyright>
     <dependencies>
       <dependency id="Microsoft.AspNet.Mvc" version="5.2.3" />
-<dependency id="WebEx.Core" version="1.1.64.17076" /></dependencies>
+<dependency id="WebEx.Core" version="1.1.87.17165" /></dependencies>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System.Web" targetFramework="" />
     </frameworkAssemblies>

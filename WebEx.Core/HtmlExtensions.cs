@@ -93,16 +93,23 @@ namespace WebEx.Core
 
         //    return null;
         //}
-        public static bool PartialViewExists(this HtmlHelper html, string partialViewName, object model)
+        /// <summary>
+        /// Check whether view exists. If model was specified, compare it type with view model type (if exists)
+        /// </summary>
+        /// <param name="html"></param>
+        /// <param name="partialViewName"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static bool IsPartialViewExists(this HtmlHelper html, string partialViewName, object model)
         {
             var vr = ViewEngines.Engines.FindPartialView(html.ViewContext.Controller.ControllerContext, partialViewName);
             var bm = vr.View as BuildManagerCompiledView;
-            if (bm != null && model == null && html.ViewData.Model != null && html.ViewData.ModelMetadata != null)
+            if (bm != null && model != null/* && html.ViewData.Model != null && html.ViewData.ModelMetadata != null*/)
             {
                 var rv = System.Web.Compilation.BuildManager.GetCompiledType(bm.ViewPath);
                 if (typeof(WebViewPage).IsAssignableFrom(rv) && rv.BaseType.IsGenericType)
                 {
-                    return html.ViewData.ModelMetadata.ModelType == rv.BaseType.GetGenericArguments()[0];
+                    return model.GetType() == rv.BaseType.GetGenericArguments()[0];
                 }                
             }
             return vr.View != null;

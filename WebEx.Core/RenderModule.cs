@@ -201,7 +201,7 @@ namespace WebEx.Core
                         var cssViewName = viewName.Replace(extension, "css." + extension);
                         if ((cm == null || cm.GetView(Contracts.CSSView, helper) == null /*|| cm.GetView(Contracts.CSSView, helper).IsAuto()*/))
                         {
-                            if (helper.PartialViewExists(cssViewName, model))
+                            if (helper.IsPartialViewExists(cssViewName, model))
                                 helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model);
                             else
                             {
@@ -215,7 +215,7 @@ namespace WebEx.Core
                                     foreach (var v in views)
                                     {
                                         cssViewName = ReplaceView(cssViewName, v);
-                                        if (helper.PartialViewExists(cssViewName, model))
+                                        if (helper.IsPartialViewExists(cssViewName, model))
                                         {
                                             helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model);
                                             break;
@@ -228,7 +228,7 @@ namespace WebEx.Core
                         var jsViewName = viewName.Replace(extension, "js." + extension);
                         if ((cm == null || cm.GetView(Contracts.JavascriptView, helper) == null /*|| cm.GetView(Contracts.JavascriptView, helper).IsAuto()*/))
                         {
-                            if (helper.PartialViewExists(jsViewName, model))
+                            if (helper.IsPartialViewExists(jsViewName, model))
                                 helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model);
                             else
                             {
@@ -242,7 +242,7 @@ namespace WebEx.Core
                                     foreach (var v in views)
                                     {
                                         jsViewName = ReplaceView(jsViewName, v);
-                                        if (helper.PartialViewExists(jsViewName, model))
+                                        if (helper.IsPartialViewExists(jsViewName, model))
                                         {
                                             helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model);
                                             break;
@@ -290,7 +290,7 @@ namespace WebEx.Core
                     if (!hasExt)
                         viewPath += "." + extension;
 
-                    if (helper.PartialViewExists(viewPath, model))
+                    if (helper.IsPartialViewExists(viewPath, model))
                     {
                         if (string.IsNullOrEmpty(moduleInstanceId))
                             moduleInstanceId = Guid.NewGuid().ToString();
@@ -307,11 +307,11 @@ namespace WebEx.Core
                         if (!mainViewDidntRender)
                         {
                             var cssViewName = viewPath.Replace(extension, "css." + extension);
-                            if (helper.PartialViewExists(cssViewName, model))
+                            if (helper.IsPartialViewExists(cssViewName, model))
                                 helper.RegisterInlineModule("css", cssViewName, model);
 
                             var jsViewName = viewPath.Replace(extension, "js." + extension);
-                            if (helper.PartialViewExists(jsViewName, model))
+                            if (helper.IsPartialViewExists(jsViewName, model))
                                 helper.RegisterInlineModule("js", jsViewName, model);
                         }
 
@@ -531,7 +531,7 @@ namespace WebEx.Core
                         ext,            //2
                         extView);       //3
 
-                    if (helper.PartialViewExists(viewNameInner, model))
+                    if (helper.IsPartialViewExists(viewNameInner, model))
                     {
                         helper.RenderModuleMainViewWithFilters(moduleFolder, curView, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model),
                             preRenderFilters, postRenderFilters);
@@ -547,7 +547,7 @@ namespace WebEx.Core
                             realViewName,   //1
                             ext,            //2
                             extView);       //3
-                        if (helper.PartialViewExists(viewNameInner, model))
+                        if (helper.IsPartialViewExists(viewNameInner, model))
                         {
                             helper.RenderModuleMainViewWithFilters(moduleFolder, curView, model, out res, moduleInstanceId, args, viewNameInner, out mainViewDidntRender, () => helper.Partial(viewNameInner, model), 
                                 preRenderFilters, postRenderFilters);
@@ -580,7 +580,7 @@ namespace WebEx.Core
 
                     l2:
                     var viewName = string.Format("{2}/{0}{3}.{1}", realViewName, ext, mPath, extView);
-                    if (helper.PartialViewExists(viewName, model))
+                    if (helper.IsPartialViewExists(viewName, model))
                     {
                         //using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, viewName, args), () => helper.CleanupRender(moduleInstanceId)))
                         //{
@@ -595,7 +595,7 @@ namespace WebEx.Core
                     {
                         realViewName = "default";
                         viewName = string.Format("{2}/{0}{3}.{1}", realViewName, ext, mPath, extView);
-                        if (helper.PartialViewExists(viewName, model))
+                        if (helper.IsPartialViewExists(viewName, model))
                         {
                             //using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, viewName, args), () => helper.CleanupRender(moduleInstanceId)))
                             //{
