@@ -109,7 +109,7 @@ namespace WebEx.Core
                 var rv = System.Web.Compilation.BuildManager.GetCompiledType(bm.ViewPath);
                 if (typeof(WebViewPage).IsAssignableFrom(rv) && rv.BaseType.IsGenericType)
                 {
-                    return model.GetType() == rv.BaseType.GetGenericArguments()[0];
+                    return rv.BaseType.GetGenericArguments()[0].IsAssignableFrom(model.GetType());
                 }                
             }
             return vr.View != null;

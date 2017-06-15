@@ -301,12 +301,15 @@ namespace WebEx.Core
         public static IEnumerable<T> LoadModules<T>(this ControllerBase ctrl, params object[] args)
         {
             var modules = ctrl.ControllerContext.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
+            var l = new List<T>();
             if (modules != null)
                 foreach (var module in modules)
                 {
                     if (typeof(T).IsAssignableFrom(module))
-                        yield return (T)LoadModule(ctrl, module, args);
+                        l.Add((T)LoadModule(ctrl, module, args));
                 }
+
+            return l;
         }
         public static void RegisterModule(IDictionary storage, IModule r)
         {
