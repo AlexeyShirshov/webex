@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -18,6 +19,7 @@ namespace WebEx.Core
     /// </summary>
     public static class WebExHtmlExtensions
     {
+        private static TraceSwitch _t = new TraceSwitch("webex:html", "Switch WebExHtmlExtensions", "3");
         public const string _webexInternalInlineModuleInstances = "webex:inlinemodules";
 
         public static bool HasModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
@@ -109,6 +111,13 @@ namespace WebEx.Core
                 var rv = System.Web.Compilation.BuildManager.GetCompiledType(bm.ViewPath);
                 if (typeof(WebViewPage).IsAssignableFrom(rv) && rv.BaseType.IsGenericType)
                 {
+                    //if (_t.TraceVerbose)
+                    //{
+                    //    Debug.WriteLine("{0} == {1}", model.GetType().AssemblyQualifiedName, rv.BaseType.GetGenericArguments()[0].AssemblyQualifiedName);
+                    //    Debug.WriteLine("{0}", model.GetType() == rv.BaseType.GetGenericArguments()[0]);
+                    //    Debug.WriteLine("{0} == {1}", model.GetType().Assembly.Location, rv.BaseType.GetGenericArguments()[0].Assembly.Location);
+                    //    Debug.WriteLine("{0}", model.GetType().Assembly == rv.BaseType.GetGenericArguments()[0].Assembly);
+                    //}
                     return rv.BaseType.GetGenericArguments()[0].IsAssignableFrom(model.GetType());
                 }                
             }

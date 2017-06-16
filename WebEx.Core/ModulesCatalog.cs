@@ -41,6 +41,7 @@ namespace WebEx.Core
                 }
             }
 
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var file in Directory.GetFiles(GetAssemblyDir(), assemblyPattern))
             {
                 try
@@ -48,6 +49,9 @@ namespace WebEx.Core
                     var ass = Assembly.Load(File.ReadAllBytes(file));
                     if (ass != null)
                     {
+                        var lass = loadedAssemblies.FirstOrDefault(la => la.FullName == ass.FullName);
+                        if (lass != null) ass = lass;
+
                         if (checkAttribute)
                         {
                             if (ass.GetCustomAttribute<ModuleContainerAttribute>() == null)
