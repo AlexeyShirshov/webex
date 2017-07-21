@@ -640,12 +640,19 @@ namespace WebEx.Core
             return false;
         }
 
-        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleFolder, IModuleView view, object model = null,
-            string moduleInstanceId = null, IDictionary<string, object> args = null,
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, IModuleView view, object model = null,
+            bool ignoreCase = false, string moduleInstanceId = null, IDictionary<string, object> args = null,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
-            return helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, null, model, moduleInstanceId, args, preRenderFilters, postRenderFilters);
+            bool found;
+            var r = helper.RenderModule(moduleName, args, out found, null, view, model, ignoreCase, moduleInstanceId, preRenderFilters, postRenderFilters);
+
+            if (!found)
+            {
+                r = helper.RenderNonModule(moduleName, args, view, model, moduleInstanceId, preRenderFilters, postRenderFilters);
+            }
+            return r;
         }
 
         #region Render IModule
@@ -711,6 +718,44 @@ namespace WebEx.Core
             }
             return r;
         }
+        private static MvcHtmlString RenderModule(this HtmlHelper helper, Type mt, CachedModule m, IDictionary<string, object> args, string moduleFolder,
+            IModuleView view = null, object moduleModel = null,
+            string moduleInstanceId = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {            
+
+            List<IPreRenderFilter> preFilters = null;
+            foreach (var preFilter in mt.GetCustomAttributes(typeof(IPreRenderFilter), true).Cast<IPreRenderFilter>())
+            {
+                if (preFilters == null)
+                {
+                    preFilters = new List<IPreRenderFilter>();
+
+                    if (preRenderFilters != null)
+                        preFilters.AddRange(preRenderFilters);
+                }
+
+                preFilters.Add(preFilter);
+            }
+
+            List<IPostRenderFilter> postFilters = null;
+            foreach (var postFilter in mt.GetCustomAttributes(typeof(IPostRenderFilter), true).Cast<IPostRenderFilter>())
+            {
+                if (postFilters == null)
+                {
+                    postFilters = new List<IPostRenderFilter>();
+
+                    if (preRenderFilters != null)
+                        postFilters.AddRange(postRenderFilters);
+                }
+
+                postFilters.Add(postFilter);
+            }
+
+            return helper.RenderModuleInternal(m.Inner, args, view, moduleModel, moduleInstanceId, m, moduleFolder, preFilters, postFilters);
+                    
+        }
         private static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args, out bool found, string moduleFolder,
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null,
@@ -731,35 +776,32 @@ namespace WebEx.Core
                         if (string.IsNullOrEmpty(view))
                             view = Contracts.DefaultView;
 
-                        List<IPreRenderFilter> preFilters = null;
-                        foreach (var preFilter in mt.GetCustomAttributes(typeof(IPreRenderFilter), true).Cast<IPreRenderFilter>())
-                        {
-                            if (preFilters == null)
-                            {
-                                preFilters = new List<IPreRenderFilter>();
+                        return helper.RenderModule(mt, m, args, moduleFolder, m.GetView(view, helper), moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+                    }
+                }
+            }
 
-                                if (preRenderFilters != null)
-                                    preFilters.AddRange(preRenderFilters);
-                            }
+            found = false;
+            return null;            
+        }
+        private static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args, out bool found, string moduleFolder,
+            IModuleView view = null, object moduleModel = null,
+            bool ignoreCase = false, string moduleInstanceId = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            var mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
+            if (mt != null)
+            {
+                object res;
+                if (mt != null && helper.GetStorage().TryGetValue(WebExModuleExtensions.MakeViewDataKey(mt), out res))
+                {
+                    var m = res as CachedModule;
+                    if (m != null)
+                    {
+                        found = true;
 
-                            preFilters.Add(preFilter);
-                        }
-
-                        List<IPostRenderFilter> postFilters = null;
-                        foreach (var postFilter in mt.GetCustomAttributes(typeof(IPostRenderFilter), true).Cast<IPostRenderFilter>())
-                        {
-                            if (postFilters == null)
-                            {
-                                postFilters = new List<IPostRenderFilter>();
-
-                                if (preRenderFilters != null)
-                                    postFilters.AddRange(postRenderFilters);
-                            }
-
-                            postFilters.Add(postFilter);
-                        }
-
-                        return helper.RenderModuleInternal(m.Inner, args, m.GetView(view, helper), moduleModel, moduleInstanceId, m, moduleFolder, preFilters, postRenderFilters);
+                        return helper.RenderModule(mt, m, args, moduleFolder, view, moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
                     }
                 }
             }
@@ -773,7 +815,16 @@ namespace WebEx.Core
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
-            var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, new ModuleAutoView(view), null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
+            return helper.RenderNonModule(moduleName, args, new ModuleAutoView(view), moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+        }
+
+        private static MvcHtmlString RenderNonModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args,
+            IModuleView view = null, object moduleModel = null,
+            string moduleInstanceId = null,
+            IEnumerable<IPreRenderFilter> preRenderFilters = null,
+            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+        {
+            var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
             if (r == null && !moduleName.StartsWith("~", StringComparison.Ordinal))
             {
                 {
@@ -789,7 +840,7 @@ namespace WebEx.Core
                         moduleName = System.IO.Path.Combine(dir, moduleName);
                     }
                 }
-                r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, new ModuleAutoView(view), null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
+                r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
             }
             return r;
         }

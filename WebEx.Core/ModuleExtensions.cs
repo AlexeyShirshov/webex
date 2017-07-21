@@ -88,5 +88,14 @@ namespace WebEx.Core
 
             return ModulesCatalog.GetModuleName(module.GetType());
         }
+        public static void RegisterModule(IDictionary storage, IModule r)
+        {
+            if (r == null)
+                throw new ArgumentNullException(nameof(r));
+            if (storage == null)
+                throw new ArgumentNullException(nameof(storage));
+            storage[WebExModuleExtensions.MakeViewDataKey(r.GetType())] = new CachedModule(r);
+        }
+
     }
 }

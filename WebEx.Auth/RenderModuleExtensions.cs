@@ -130,23 +130,23 @@ namespace WebEx.Auth
             return helper.RenderModuleArgs(moduleName, args, view, moduleModel, ignoreCase, moduleInstanceId, new[] { new AuthorizeAttribute { AllowUsers = AllowUsers, AllowRoles = AllowRoles, DenyUsers = DenyUsers, DenyRoles = DenyRoles } }, null);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleFolder, IModuleView view, AuthorizeAttribute auth, object model = null,
-            string moduleInstanceId = null, IDictionary<string, object> args = null)
+            bool ignoreCase = false, string moduleInstanceId = null, IDictionary<string, object> args = null)
         {
-            return helper.RenderModule(moduleFolder, view, model, moduleInstanceId, args, new[] { auth }, null);
+            return helper.RenderModule(moduleFolder, view, model, ignoreCase, moduleInstanceId, args, new[] { auth }, null);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleFolder, IModuleView view, bool allowAnonym, object model = null,
-            string moduleInstanceId = null, IDictionary<string, object> args = null)
+            bool ignoreCase = false, string moduleInstanceId = null, IDictionary<string, object> args = null)
         {
-            return helper.RenderModule(moduleFolder, view, model, moduleInstanceId, args, new[] { new AuthorizeAttribute { AllowAnonym = allowAnonym } }, null);
+            return helper.RenderModule(moduleFolder, view, model, ignoreCase, moduleInstanceId, args, new[] { new AuthorizeAttribute { AllowAnonym = allowAnonym } }, null);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleFolder, IModuleView view, IEnumerable<string> AllowRoles,
             IEnumerable<string> AllowUsers = null,
             IEnumerable<string> DenyUsers = null,
             IEnumerable<string> DenyRoles = null,
-            object model = null,
+            object model = null, bool ignoreCase = false,
             string moduleInstanceId = null, IDictionary<string, object> args = null)
         {
-            return helper.RenderModule(moduleFolder, view, model, moduleInstanceId, args, new[] { new AuthorizeAttribute { AllowUsers = AllowUsers, AllowRoles = AllowRoles, DenyUsers = DenyUsers, DenyRoles = DenyRoles } }, null);
+            return helper.RenderModule(moduleFolder, view, model, ignoreCase, moduleInstanceId, args, new[] { new AuthorizeAttribute { AllowUsers = AllowUsers, AllowRoles = AllowRoles, DenyUsers = DenyUsers, DenyRoles = DenyRoles } }, null);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, IModule module, IDictionary<string, object> args,
             IModuleView view, object model, string moduleInstanceId,

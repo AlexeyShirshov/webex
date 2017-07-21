@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -36,7 +37,7 @@ namespace WebEx.Core
             {
                 foreach (var type in ass.GetTypes())
                 {
-                    if (typeof(IModule).IsAssignableFrom(type))
+                    if (typeof(IModule).IsAssignableFrom(type) && !type.IsAbstract)
                         r.Add(type);
                 }
             }
@@ -60,7 +61,7 @@ namespace WebEx.Core
 
                         foreach (var type in ass.GetTypes())
                         {
-                            if (typeof(IModule).IsAssignableFrom(type))
+                            if (typeof(IModule).IsAssignableFrom(type) && !type.IsAbstract)
                                 r.Add(type);
                         }
                     }
@@ -150,5 +151,42 @@ namespace WebEx.Core
 
             return null;
         }
+        public static void LoadModules(HttpApplicationStateBase appState, IDictionary storage, params object[] args)
+        {
+            var modules = appState[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
+            if (modules != null)
+                foreach (var module in modules)
+                {
+                    LoadModule(storage, module, args);
+                }
+        }
+        public static IEnumerable<T> LoadModules<T>(HttpApplicationStateBase appState, IDictionary storage, params object[] args)
+        {
+            var modules = appState[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
+            var l = new List<T>();
+            if (modules != null)
+                foreach (var module in modules)
+                {
+                    if (typeof(T).IsAssignableFrom(module))
+                        l.Add((T)LoadModule(storage, module, args));
+                }
+
+            return l;
+        }
+        public static IModule LoadModule(IDictionary storage, Type type, params object[] args)
+        {
+            if (type == null)
+                return null;
+
+            var r = type.CreateInstance(null, args) as IModule;
+
+            if (r != null)
+            {
+                WebExModuleExtensions.RegisterModule(storage, r);
+            }
+
+            return r;
+        }
+
     }
 }
