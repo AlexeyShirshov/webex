@@ -24,6 +24,10 @@ namespace WebEx.Core
     {
         dynamic Model { get; }
     }
+    public interface IModuleFolder : IModule
+    {
+        string Folder { get; }
+    }
     public interface IModuleDependency
     {
         IEnumerable<string> GetDependencyByName();

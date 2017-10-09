@@ -33,6 +33,9 @@ namespace WebEx.Core
 
         private static string GetModuleFolder(IModule module)
         {
+            var mf = module as IModuleFolder;
+            if (mf != null)
+                return mf.Folder;
             return GetModuleFolder(module.GetType());
         }
         private static string GetModuleFolder(string moduleName)
