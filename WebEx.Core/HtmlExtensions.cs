@@ -19,6 +19,23 @@ namespace WebEx.Core
     /// </summary>
     public static class WebExHtmlExtensions
     {
+
+        class InlineModuleModel
+        {
+            public string type;
+            public string view;
+            public object model;
+            public IDictionary<string, object> args;
+            public string instanceId;
+
+            public InlineModuleModel(string type, string view, object model)
+            {
+                this.type = type;
+                this.view = view;
+                this.model = model;
+            }
+        }
+
         private static TraceSwitch _t = new TraceSwitch("webex:html", "Switch WebExHtmlExtensions", "3");
         public const string _webexInternalInlineModuleInstances = "webex:inlinemodules";
 
@@ -57,28 +74,28 @@ namespace WebEx.Core
                 }
             }
         }
-        public static IEnumerable<Tuple<string, object>> GetInlineModules(this HtmlHelper helper, string type)
+        public static IEnumerable<Tuple<string, object, IDictionary<string, object>, string>> GetInlineModules(this HtmlHelper helper, string type)
         {
             object res;
             if (!helper.GetStorage().TryGetValue(_webexInternalInlineModuleInstances, out res))
             {
-                res = new Tuple<string, string, object>[] { };
+                res = new InlineModuleModel[] { };
             }
-            return from k in res as IEnumerable<Tuple<string, string, object>> where k.Item1 == type select new Tuple<string, object>(k.Item2, k.Item3);
+            return from k in res as IEnumerable<InlineModuleModel> where k.type == type select new Tuple<string, object, IDictionary<string, object>,string>(k.view, k.model, k.args, k.instanceId);
         }
-        public static void RegisterInlineModule(this HtmlHelper helper, string type, string view, object model)
+        public static void RegisterInlineModule(this HtmlHelper helper, string type, string view, object model, IDictionary<string, object> args, string moduleInstanceId)
         {
             object res;
             if (!helper.GetStorage().TryGetValue(_webexInternalInlineModuleInstances, out res))
             {
-                res = new List<Tuple<string, string, object>>();
+                res = new List<InlineModuleModel>();
                 helper.GetStorage()[_webexInternalInlineModuleInstances] = res;
             }
 
-            var l = res as List<Tuple<string, string, object>>;
+            var l = res as List<InlineModuleModel>;
 
-            if (!l.Any((it) => it.Item1 == type && it.Item2 == view && object.Equals(it.Item3, model)))
-                l.Add(new Tuple<string, string, object>(type, view, model));
+            if (!l.Any((it) => it.type == type && it.view == view && object.Equals(it.model, model)))
+                l.Add(new InlineModuleModel(type, view, model) { args = args, instanceId = moduleInstanceId });
         }
         public static IModule GetModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)
         {

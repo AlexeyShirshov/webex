@@ -188,6 +188,9 @@ namespace WebEx.Core
             else
                 exts = new[] { ext.Trim('.') };
 
+            if (string.IsNullOrEmpty(moduleInstanceId))
+                moduleInstanceId = Guid.NewGuid().ToString();
+
             foreach (var extension in exts)
             {
                 MvcHtmlString res;
@@ -205,7 +208,7 @@ namespace WebEx.Core
                         if ((cm == null || cm.GetView(Contracts.CSSView, helper) == null /*|| cm.GetView(Contracts.CSSView, helper).IsAuto()*/))
                         {
                             if (helper.IsPartialViewExists(cssViewName, model))
-                                helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model);
+                                helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
                             else
                             {
                                 var fb = view.GetFallBack();
@@ -220,7 +223,7 @@ namespace WebEx.Core
                                         cssViewName = ReplaceView(cssViewName, v);
                                         if (helper.IsPartialViewExists(cssViewName, model))
                                         {
-                                            helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model);
+                                            helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
                                             break;
                                         }
                                     }
@@ -232,7 +235,7 @@ namespace WebEx.Core
                         if ((cm == null || cm.GetView(Contracts.JavascriptView, helper) == null /*|| cm.GetView(Contracts.JavascriptView, helper).IsAuto()*/))
                         {
                             if (helper.IsPartialViewExists(jsViewName, model))
-                                helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model);
+                                helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
                             else
                             {
                                 var fb = view.GetFallBack();
@@ -247,7 +250,7 @@ namespace WebEx.Core
                                         jsViewName = ReplaceView(jsViewName, v);
                                         if (helper.IsPartialViewExists(jsViewName, model))
                                         {
-                                            helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model);
+                                            helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
                                             break;
                                         }
                                     }
@@ -295,8 +298,8 @@ namespace WebEx.Core
 
                     if (helper.IsPartialViewExists(viewPath, model))
                     {
-                        if (string.IsNullOrEmpty(moduleInstanceId))
-                            moduleInstanceId = Guid.NewGuid().ToString();
+                        //if (string.IsNullOrEmpty(moduleInstanceId))
+                        //    moduleInstanceId = Guid.NewGuid().ToString();
 
                         MvcHtmlString res;
                         //using (new AutoCleanup(() => helper.PrepareRender(moduleInstanceId, viewPath, args), () => helper.CleanupRender(moduleInstanceId)))
@@ -311,11 +314,11 @@ namespace WebEx.Core
                         {
                             var cssViewName = viewPath.Replace(extension, "css." + extension);
                             if (helper.IsPartialViewExists(cssViewName, model))
-                                helper.RegisterInlineModule("css", cssViewName, model);
+                                helper.RegisterInlineModule("css", cssViewName, model, args, moduleInstanceId);
 
                             var jsViewName = viewPath.Replace(extension, "js." + extension);
                             if (helper.IsPartialViewExists(jsViewName, model))
-                                helper.RegisterInlineModule("js", jsViewName, model);
+                                helper.RegisterInlineModule("js", jsViewName, model, args, moduleInstanceId);
                         }
 
                         return res;
@@ -922,9 +925,13 @@ namespace WebEx.Core
 
             foreach (var item in helper.GetInlineModules(viewType))
             {
-                var r = helper.Partial(item.Item1, item.Item2);
-                if (r != null)
-                    sb.Append(r.ToString());
+                using (new AutoCleanup(() => helper.PrepareRender(item.Item4, item.Item1, item.Item3), () => helper.CleanupRender(item.Item4)))
+                {
+                    var r = helper.Partial(item.Item1, item.Item2);
+                    if (r != null)
+                        sb.Append(r.ToString());
+                }
+                
             }
             return MvcHtmlString.Create(sb.ToString());
         }

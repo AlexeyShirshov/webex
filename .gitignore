@@ -8,3 +8,7 @@
 /WebEx.Core/obj/Debug
 /.vs/Supercharger
 /App_Data/Packages
+/.vs/webex/v15/Server/sqlite3
+/.vs/webex/v15/sqlite3/db.lock
+/.vs/webex/v15/sqlite3/storage.ide-shm
+/.vs/webex/v15/sqlite3/storage.ide-wal
