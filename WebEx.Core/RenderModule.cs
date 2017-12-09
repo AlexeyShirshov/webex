@@ -151,7 +151,8 @@ namespace WebEx.Core
                     if (string.IsNullOrEmpty(moduleFolder))
                         moduleFolder = GetModuleFolder(module);
 
-                    var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, cm, model, moduleInstanceId, args, preFilters, postFilters);
+                    string mp = null;
+                    var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, cm, model, moduleInstanceId, args, mp, preFilters, postFilters);
                     if (r == null)
                     {
                         var curViewPath = helper.GetViewPath();
@@ -163,9 +164,9 @@ namespace WebEx.Core
                             if (string.Compare(curView, moduleFolder, StringComparison.InvariantCultureIgnoreCase) == 0)
                                 return null;
 
-                            moduleFolder = System.IO.Path.Combine(dir, moduleFolder);
+                            mp = System.IO.Path.Combine(dir, moduleFolder);
                         }
-                        r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, cm, model, moduleInstanceId, args, preFilters, postFilters);
+                        r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, view, cm, model, moduleInstanceId, args, mp, preFilters, postFilters);
                     }
 
                     return r;
@@ -174,7 +175,7 @@ namespace WebEx.Core
             return null;
         }
         internal static MvcHtmlString RenderModuleOrPartialViewWithCSSAndJSViews(this HtmlHelper helper, string moduleFolder, IModuleView view, CachedModule cm, object model,
-            string moduleInstanceId, IDictionary<string, object> args,
+            string moduleInstanceId, IDictionary<string, object> args, string modulePath,
             IEnumerable<IPreRenderFilter> preRenderFilters,
             IEnumerable<IPostRenderFilter> postRenderFilters)
         {
@@ -191,12 +192,16 @@ namespace WebEx.Core
             if (string.IsNullOrEmpty(moduleInstanceId))
                 moduleInstanceId = Guid.NewGuid().ToString();
 
+            var mp = modulePath;
+            if (string.IsNullOrEmpty(mp))
+                mp = cm?.Folder;
+
             foreach (var extension in exts)
             {
                 MvcHtmlString res;
                 string viewName;
                 bool mainViewDidntRender;
-                if (RenderModuleMainView(helper, moduleFolder, view, model, extension, out res, moduleInstanceId, args, out viewName, out mainViewDidntRender, cm?.Folder, 
+                if (RenderModuleMainView(helper, moduleFolder, view, model, extension, out res, moduleInstanceId, args, out viewName, out mainViewDidntRender, mp, 
                     preRenderFilters, postRenderFilters))
                 {
                     if (!string.IsNullOrEmpty(viewName) && !mainViewDidntRender)
@@ -296,6 +301,23 @@ namespace WebEx.Core
                     if (!hasExt)
                         viewPath += "." + extension;
 
+                    if (!viewPath.StartsWith("~", StringComparison.Ordinal))
+                    {
+                        var curIns = helper.GetCurrentModuleInstance();
+                        var curFolder = curIns?.Folder;
+                        if (string.IsNullOrEmpty(curFolder))
+                        {
+                            var curViewPath = helper.GetViewPath();
+                            if (!string.IsNullOrEmpty(curViewPath))
+                            {
+                                curFolder = System.IO.Path.GetDirectoryName(curViewPath);
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(curFolder))
+                            viewPath = System.IO.Path.Combine(curFolder, viewPath);
+                    }
+
                     if (helper.IsPartialViewExists(viewPath, model))
                     {
                         //if (string.IsNullOrEmpty(moduleInstanceId))
@@ -381,7 +403,7 @@ namespace WebEx.Core
                             if (newModel) frModel = filterRes.Model;
                             IModuleView frView = view;
                             if (newView) frView = filterRes.View;
-                            MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
+                            MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null, null);
                             if (frRes != null)
                             {
                                 sbPre.Append(frRes.ToString());
@@ -411,7 +433,7 @@ namespace WebEx.Core
                 object frModel = model;
                 if (filter.Model != null && filter.Model != model) frModel = filter.Model;
                 var frView = filter.PostRenderView;
-                MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
+                MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null, null);
                 if (frRes != null)
                 {
                     sbPost.Append(frRes.ToString());
@@ -445,7 +467,7 @@ namespace WebEx.Core
                             if (newModel) frModel = filterRes.Model;
                             IModuleView frView = view;
                             if (newView) frView = filterRes.View;
-                            MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null);
+                            MvcHtmlString frRes = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleFolder, frView, null, frModel, moduleInstanceId, args, null, null, null);
                             if (frRes != null)
                             {
                                 sbPost.Append(frRes.ToString());
@@ -830,7 +852,8 @@ namespace WebEx.Core
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
-            var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
+            string mp = null;
+            var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, mp, preRenderFilters, postRenderFilters);
             if (r == null && !moduleName.StartsWith("~", StringComparison.Ordinal))
             {
                 {
@@ -843,10 +866,10 @@ namespace WebEx.Core
                         if (string.Compare(curView, moduleName, StringComparison.InvariantCultureIgnoreCase) == 0)
                             return null;
 
-                        moduleName = System.IO.Path.Combine(dir, moduleName);
+                        mp = System.IO.Path.Combine(dir, moduleName);
                     }
                 }
-                r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, preRenderFilters, postRenderFilters);
+                r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, mp, preRenderFilters, postRenderFilters);
             }
             return r;
         }
