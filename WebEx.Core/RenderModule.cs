@@ -22,6 +22,7 @@ namespace WebEx.Core
         public const string ModulesFolder = "webex.modules";
         public const string webexViewExtension = "webex:viewext";
         public const string webexModuleInstance = "webex:moduleInstance";
+        public const string webexModuleMainView = "webex:main-view";
         public static string GetViewExtension(HttpApplicationStateBase app)
         {
             //var ext = app[webexViewExtension] as string;
@@ -1063,6 +1064,9 @@ namespace WebEx.Core
             var mi = helper.GetModuleInstance(moduleInstanceId, viewPath);
             if (mi != null)
                 mi.Params = args;
+
+            if (!helper.GetStorage().ContainsKey(webexModuleMainView))
+                helper.GetStorage()[webexModuleMainView] = helper.ViewData.Model;
         }
 
         private static ModuleInstance GetModuleInstance(this HtmlHelper helper, string moduleInstanceId, string viewPath)
@@ -1090,6 +1094,9 @@ namespace WebEx.Core
         }
         private static void CleanupRender(this HtmlHelper helper, string moduleInstanceId)
         {
+            if (helper.GetStorage().ContainsKey(webexModuleMainView))
+                helper.GetStorage().Remove(webexModuleMainView);
+
             if (string.IsNullOrEmpty(moduleInstanceId))
                 return;
 
@@ -1157,6 +1164,16 @@ namespace WebEx.Core
             }
 
             return false;
+        }
+        public static object GetMainViewModel(this HtmlHelper helper)
+        {
+            object m;
+            if (helper.GetStorage().TryGetValue(webexModuleMainView, out m))
+            {
+                return m;
+            }
+
+            return null;
         }
         #endregion
 
