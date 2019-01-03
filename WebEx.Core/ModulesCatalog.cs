@@ -2,12 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Compilation;
 using System.Web.Hosting;
+using System.Web.Mvc;
+using System.Web.Routing;
+using System.Web.UI;
 
 namespace WebEx.Core
 {
@@ -21,8 +25,10 @@ namespace WebEx.Core
     /// </summary>
     public static class ModulesCatalog
     {
+        internal static TraceSwitch _ts = new TraceSwitch("webex:mcatalog", "Switch ModulesCatalog", "3");
         public const string _webexInternalModuleAliases = "webex:modulealiases";
         public const string _webexInternalModuleTypes = "webex:modules";
+        private const string DefaultWebExHandlerName = "webex-handler";
 
         public static Type[] GetModulesByAttribute()
         {
@@ -133,6 +139,9 @@ namespace WebEx.Core
 
         public static Type GetModule(HttpApplicationStateBase appState, string moduleName, bool ignoreCase = false)
         {
+            if (string.IsNullOrEmpty(moduleName))
+                return null;
+
             object qname = null;
             if (appState != null)
             {
@@ -187,6 +196,107 @@ namespace WebEx.Core
 
             return r;
         }
+        public static void RegisterHandler(RouteCollection routes, string handlerUrl=DefaultWebExHandlerName + "/{module}/{method}/{id}")
+        {
+            routes.Add(new Route
+            (
+                handlerUrl,
+                new RouteValueDictionary(new { id = UrlParameter.Optional}),
+                new RouteHandler()
+            ));
+        }
+        public static string GetModuleHandlerUrl(string module, string method, string webexHandler = DefaultWebExHandlerName)
+        {
+            return $"{webexHandler}/{module}/{method}";
+        }
+    }
 
+    public class RouteHandler : IRouteHandler
+    {
+        class EmptyController : Controller
+        {
+            public void Initialize(RequestContext requestContext, ControllerContext cc)
+            {
+                ControllerContext = cc;
+                TempData = new TempDataDictionary();
+                ViewData = new ViewDataDictionary();
+                base.Initialize(requestContext);
+            }
+        }
+        class ViewDataContainer : System.Web.Mvc.IViewDataContainer
+        {
+            public System.Web.Mvc.ViewDataDictionary ViewData { get; set; }
+
+            public ViewDataContainer(System.Web.Mvc.ViewDataDictionary viewData)
+            {
+                ViewData = viewData;
+            }
+        }
+        class View : IView
+        {
+            public void Render(ViewContext viewContext, TextWriter writer)
+            {
+                //do nothing
+            }
+        }
+        class HttpHandler : IHttpHandler
+        {
+            private RequestContext _rc;
+            public HttpHandler(RequestContext rc) { _rc = rc; }
+            public bool IsReusable => false;
+
+            public void ProcessRequest(HttpContext context)
+            {
+                var module = _rc.RouteData.Values["module"].ToString();
+                var method = _rc.RouteData.Values["method"].ToString();
+                object id;
+                _rc.RouteData.Values.TryGetValue("id", out id);
+                //var urlHelper = new UrlHelper(_rc);
+
+                var type = ModulesCatalog.GetModule(new HttpApplicationStateWrapper(context.Application), module, false);
+                if (type == null)
+                {
+                    if (ModulesCatalog._ts.TraceInfo)
+                        Debug.WriteLine("{0}: Cannot create type from module {1}", ModulesCatalog._ts.DisplayName, module);
+
+                    return;
+                }
+
+                var r = type.CreateInstance((mtype, atype) =>
+                {
+                    if (typeof(UrlHelper).IsAssignableFrom(mtype) && !typeof(UrlHelper).IsAssignableFrom(atype))
+                        return new UrlHelper(_rc);
+
+                    return null;
+                }) as IModuleHandler;
+
+                if (r == null)
+                {
+                    if (ModulesCatalog._ts.TraceInfo)
+                        Debug.WriteLine("{0}: Module {1} does not implement IModuleHandler", ModulesCatalog._ts.DisplayName, module);
+
+                    return;
+                }
+
+                string view;
+                if (!r.Call(method, id, _rc, out view))
+                    return;
+
+                _rc.RouteData.Values["controller"] = "Empty";
+                using (var ctrl = new EmptyController())
+                {
+                    var cc = new ControllerContext(_rc, ctrl);
+                    ctrl.Initialize(_rc, cc);
+                    var ct = new ViewContext(cc, new View(), cc.Controller.ViewData, cc.Controller.TempData, context.Response.Output);
+                    var h = new HtmlHelper(ct, new ViewDataContainer(cc.Controller.ViewData));
+
+                    context.Response.Output.Write(h.RenderModule(r, view).ToHtmlString());
+                }
+            }
+        }
+        public IHttpHandler GetHttpHandler(RequestContext requestContext)
+        {
+            return new HttpHandler(requestContext);
+        }
     }
 }

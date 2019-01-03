@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace WebEx.Core
 {
@@ -27,6 +28,10 @@ namespace WebEx.Core
     public interface IModuleFolder : IModule
     {
         string Folder { get; }
+    }
+    public interface IModuleHandler : IModule
+    {
+        bool Call(string method, object id, RequestContext rc, out string view);
     }
     public interface IModuleDependency
     {
