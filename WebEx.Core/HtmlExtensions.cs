@@ -94,7 +94,7 @@ namespace WebEx.Core
 
             var l = res as List<InlineModuleModel>;
 
-            if (!l.Any((it) => it.type == type && it.view == view && object.Equals(it.model, model)))
+            if (!l.Any((it) => it.type == type && it.view == view && (view.Contains("-once.") || object.Equals(it.model, model))))
                 l.Add(new InlineModuleModel(type, view, model) { args = args, instanceId = moduleInstanceId });
         }
         public static IModule GetModule(this HtmlHelper helper, string moduleName, bool ignoreCase = false)

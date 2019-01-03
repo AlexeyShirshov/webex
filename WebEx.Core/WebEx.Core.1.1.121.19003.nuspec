@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>WebEx.Core</id>
-    <version>1.1.119.18361</version>
+    <version>1.1.121.19003</version>
     <title>WebEx.Core</title>
     <authors>Alexey Shirshov</authors>
     <owners>Alexey Shirshov</owners>
@@ -18,8 +18,8 @@
     </frameworkAssemblies>
   </metadata>
   <files>
-    <file src="F:\projects\nuget\custom packages\web.config.install.xdt" target="content\Views\web.config.install.xdt" />
-    <file src="F:\projects\nuget\custom packages\web.config.uninstall.xdt" target="content\Views\web.config.uninstall.xdt" />
-    <file src="bin\Debug\WebEx.Core.dll" target="lib\net451\WebEx.Core.dll" />
+    <file src="content\Views\web.config.install.xdt" target="content\Views\web.config.install.xdt" />
+    <file src="content\Views\web.config.uninstall.xdt" target="content\Views\web.config.uninstall.xdt" />
+    <file src="lib\net451\WebEx.Core.dll" target="lib\net451\WebEx.Core.dll" />
   </files>
 </package>

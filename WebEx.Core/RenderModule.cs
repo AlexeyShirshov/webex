@@ -217,20 +217,37 @@ namespace WebEx.Core
                                 helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
                             else
                             {
-                                var fb = view.GetFallBack();
-                                if (fb != null)
+                                var viewOnce = cssViewName.Replace("css.", "css-once.");
+                                if (helper.IsPartialViewExists(viewOnce, model))
                                 {
-                                    var views = new[] { "index", "default" };
-                                    if (!fb.IsDefault() && !string.IsNullOrEmpty(fb.Value))
-                                        views = new[] { fb.Value };
-
-                                    foreach (var v in views)
+                                    helper.RegisterInlineModule(Contracts.CSSView, viewOnce, model, args, moduleInstanceId);
+                                }
+                                else
+                                {
+                                    var fb = view.GetFallBack();
+                                    if (fb != null)
                                     {
-                                        cssViewName = ReplaceView(cssViewName, v);
-                                        if (helper.IsPartialViewExists(cssViewName, model))
+                                        var views = new[] { "index", "default" };
+                                        if (!fb.IsDefault() && !string.IsNullOrEmpty(fb.Value))
+                                            views = new[] { fb.Value };
+
+                                        foreach (var v in views)
                                         {
-                                            helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
-                                            break;
+                                            cssViewName = ReplaceView(cssViewName, v);
+                                            if (helper.IsPartialViewExists(cssViewName, model))
+                                            {
+                                                helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                viewOnce = cssViewName.Replace("css.", "css-once.");
+                                                if (helper.IsPartialViewExists(viewOnce, model))
+                                                {
+                                                    helper.RegisterInlineModule(Contracts.CSSView, viewOnce, model, args, moduleInstanceId);
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -244,20 +261,37 @@ namespace WebEx.Core
                                 helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
                             else
                             {
-                                var fb = view.GetFallBack();
-                                if (fb != null)
+                                var viewOnce = jsViewName.Replace("js.", "js-once.");
+                                if (helper.IsPartialViewExists(viewOnce, model))
                                 {
-                                    var views = new[] { "index", "default" };
-                                    if (!fb.IsDefault() && !string.IsNullOrEmpty(fb.Value))
-                                        views = new[] { fb.Value };
-
-                                    foreach (var v in views)
+                                    helper.RegisterInlineModule(Contracts.JavascriptView, viewOnce, model, args, moduleInstanceId);
+                                }
+                                else
+                                {
+                                    var fb = view.GetFallBack();
+                                    if (fb != null)
                                     {
-                                        jsViewName = ReplaceView(jsViewName, v);
-                                        if (helper.IsPartialViewExists(jsViewName, model))
+                                        var views = new[] { "index", "default" };
+                                        if (!fb.IsDefault() && !string.IsNullOrEmpty(fb.Value))
+                                            views = new[] { fb.Value };
+
+                                        foreach (var v in views)
                                         {
-                                            helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
-                                            break;
+                                            jsViewName = ReplaceView(jsViewName, v);
+                                            if (helper.IsPartialViewExists(jsViewName, model))
+                                            {
+                                                helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                viewOnce = jsViewName.Replace("js.", "js-once.");
+                                                if (helper.IsPartialViewExists(viewOnce, model))
+                                                {
+                                                    helper.RegisterInlineModule(Contracts.JavascriptView, viewOnce, model, args, moduleInstanceId);
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -337,11 +371,26 @@ namespace WebEx.Core
                         {
                             var cssViewName = viewPath.Replace(extension, "css." + extension);
                             if (helper.IsPartialViewExists(cssViewName, model))
-                                helper.RegisterInlineModule("css", cssViewName, model, args, moduleInstanceId);
-
+                                helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
+                            else
+                            {
+                                var viewOnce = cssViewName.Replace("css.", "css-once.");
+                                if (helper.IsPartialViewExists(viewOnce, model))
+                                {
+                                    helper.RegisterInlineModule(Contracts.CSSView, viewOnce, model, args, moduleInstanceId);
+                                }
+                            }
                             var jsViewName = viewPath.Replace(extension, "js." + extension);
                             if (helper.IsPartialViewExists(jsViewName, model))
-                                helper.RegisterInlineModule("js", jsViewName, model, args, moduleInstanceId);
+                                helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
+                            else
+                            {
+                                var viewOnce = jsViewName.Replace("js.", "js-once.");
+                                if (helper.IsPartialViewExists(viewOnce, model))
+                                {
+                                    helper.RegisterInlineModule(Contracts.JavascriptView, viewOnce, model, args, moduleInstanceId);
+                                }
+                            }
                         }
 
                         return res;
