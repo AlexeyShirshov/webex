@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.9.17202")]
+[assembly: AssemblyFileVersion("1.0.11.19010")]
 //WebEx.Core: 1.1.1.0
