@@ -14,11 +14,15 @@ namespace WebEx.Core
         private static readonly object _null = new object();
         public static object CreateInstance(this Type type, Func<Type, Type, object> mapTypes, params object[] args)
         {
+            return type.CallMethod(null, () => type.GetConstructors(), mapTypes, args);
+        }
+        public static object CallMethod(this Type type, object target, Func<IEnumerable<MethodBase>> methods, Func<Type, Type, object> mapTypes, params object[] args)
+        {
             if (type == null)
                 return null;
 
-            var dic = new List<Tuple<ConstructorInfo, object[], int[]>>();
-            foreach (var ctor in type.GetConstructors())
+            var dic = new List<Tuple<MethodBase, object[], int[]>>();
+            foreach (var ctor in methods())
             {
                 var methodParams = ctor.GetParameters();
                 if (!methodParams.Any() && (args == null || args.Length == 0))
@@ -90,16 +94,16 @@ namespace WebEx.Core
                             }
                         }
                     }
-                    dic.Add(new Tuple<ConstructorInfo, object[], int[]>(ctor, params2Call, (from k in Enumerable.Range(0, args.Length)
-                                                                                            where !argsIdx.Contains(k)
-                                                                                            select k).ToArray()));
+                    dic.Add(new Tuple<MethodBase, object[], int[]>(ctor, params2Call, (from k in Enumerable.Range(0, args.Length)
+                                                                                       where !argsIdx.Contains(k)
+                                                                                       select k).ToArray()));
                 }
             }
             if (dic.Count == 0)
                 return Activator.CreateInstance(type);
 
             var bestParams = dic.First();
-            IEnumerable<Tuple<ConstructorInfo, object[], int[]>> sorted = null;
+            IEnumerable<Tuple<MethodBase, object[], int[]>> sorted = null;
             //if (dic.Count > 1)
             {
                 sorted = dic.OrderByDescending(it => it.Item2.Count(it2 => it2 != _null)).ToArray();
@@ -196,8 +200,11 @@ namespace WebEx.Core
                 }
             }
 
-            return bestParams.Item1.Invoke(bestParams.Item2);
+            return bestParams.Item1.Invoke(target, bestParams.Item2);
         }
+
+        #region LoadModule
+
         public static IModule LoadModule(this ControllerBase ctrl, string moduleName, params object[] args)
         {
             return LoadModule(ctrl, moduleName, false, args);
@@ -211,68 +218,13 @@ namespace WebEx.Core
             if (type == null)
                 return null;
 
-            var r = type.CreateInstance((mtype, atype)=>
-            {
-                if (typeof(ControllerBase).IsAssignableFrom(mtype) && !typeof(ControllerBase).IsAssignableFrom(atype))
-                    return ctrl;
+            var r = type.CreateInstance((mtype, atype) =>
+                {
+                    if (typeof(ControllerBase).IsAssignableFrom(mtype) && !typeof(ControllerBase).IsAssignableFrom(atype))
+                        return ctrl;
 
-                return null;
-            }, args) as IModule;
-
-            //foreach (var method in type.GetConstructors())
-            //{
-            //    var methodParams = method.GetParameters();
-            //    if (methodParams.Count() == 0)
-            //    {
-            //        r = Activator.CreateInstance(type) as IModule;
-            //    }
-            //    else 
-            //    {
-            //        var params2Call = new object[methodParams.Count()];
-            //        int j = 0;
-            //        for (int i = 0; i < params2Call.Length; i++)
-            //        {
-            //            var mtype = methodParams[i].ParameterType;
-            //            object arg = null;
-            //            if (args != null && args.Length > j)
-            //                arg = args[j];
-
-            //            if (arg == null)
-            //            {
-            //                if (typeof(ControllerBase).IsAssignableFrom(mtype))
-            //                    params2Call[i] = ctrl;
-
-            //                if (args != null && args.Length > j)
-            //                    j++;
-            //            }
-            //            else
-            //            {
-            //                if (mtype == arg.GetType())
-            //                {
-            //                    params2Call[i] = arg;
-            //                    j++;
-            //                }
-            //                else if (typeof(ControllerBase).IsAssignableFrom(mtype) && !typeof(ControllerBase).IsAssignableFrom(arg.GetType()))
-            //                {
-            //                    params2Call[i] = ctrl;
-            //                }
-            //                else
-            //                {
-            //                    try
-            //                    {
-            //                        params2Call[i] = Convert.ChangeType(arg, mtype);
-            //                        j++;
-            //                    }
-            //                    catch(Exception ex)
-            //                    {
-            //                        //eat an exception
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        r = Activator.CreateInstance(type, params2Call) as IModule;
-            //    }
-            //}
+                    return null;
+                }, args) as IModule;
 
             if (r != null)
             {
@@ -291,6 +243,57 @@ namespace WebEx.Core
         {
             return LoadModule(ctrl, Type.GetType(type, assemblyResolver, typeResolver, false, ignoreCase), args);
         }
+
+        #endregion
+
+        #region LoadModuleAsync
+
+        public async static Task<IModule> LoadModuleAsync(this ControllerBase ctrl, string moduleName, params object[] args)
+        {
+            return await LoadModuleAsync(ctrl, moduleName, false, args);
+        }
+        public async static Task<IModule> LoadModuleAsync(this ControllerBase ctrl, string moduleName, bool ignoreCase, params object[] args)
+        {
+            return await LoadModuleAsync(ctrl, ModulesCatalog.GetModule(ctrl.ControllerContext.HttpContext.Application, moduleName, ignoreCase), args);
+        }
+        public async static Task<IModule> LoadModuleAsync(this ControllerBase ctrl, Type type, params object[] args)
+        {
+            if (type == null)
+                return null;
+
+            var r = Activator.CreateInstance(type) as IModule;
+
+            Task t = type.CallMethod(r, () => type.GetMethods().Where(it => it.Name == "Init" && it.ReturnType == typeof(Task)), (mtype, atype) =>
+            {
+                if (typeof(ControllerBase).IsAssignableFrom(mtype) && !typeof(ControllerBase).IsAssignableFrom(atype))
+                    return ctrl;
+
+                return null;
+            }, args) as Task;
+
+            if (t != null)
+                await t;
+
+            if (r != null)
+            {
+                WebExModuleExtensions.RegisterModule(ctrl.ControllerContext.RequestContext.HttpContext.Items, r);
+            }
+
+            return r;
+        }
+        public async static Task<IModule> LoadModuleAsync(this ControllerBase ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
+            Func<Assembly, string, bool, Type> typeResolver, params object[] args)
+        {
+            return await LoadModuleAsync(ctrl, type, assemblyResolver, typeResolver, false, args);
+        }
+        public async static Task<IModule> LoadModuleAsync(this ControllerBase ctrl, string type, Func<AssemblyName, Assembly> assemblyResolver,
+            Func<Assembly, string, bool, Type> typeResolver, bool ignoreCase, params object[] args)
+        {
+            return await LoadModuleAsync(ctrl, Type.GetType(type, assemblyResolver, typeResolver, false, ignoreCase), args);
+        }
+
+        #endregion
+
         public static void LoadModules(this ControllerBase ctrl, params object[] args)
         {
             var modules = ctrl.ControllerContext.HttpContext.Application[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type>;
