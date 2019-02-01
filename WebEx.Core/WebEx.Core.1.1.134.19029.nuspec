@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>WebEx.Core</id>
+    <version>1.1.134.19029</version>
+    <title>WebEx.Core</title>
+    <authors>Alexey Shirshov</authors>
+    <owners>Alexey Shirshov</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>http://webex.codeplex.com/</projectUrl>
+    <description>WebEx.Core is a core library of WebEx project</description>
+    <copyright>Copyright 2017</copyright>
+    <dependencies>
+      <dependency id="Microsoft.AspNet.Mvc" version="5.2.3" />
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Web" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="content\Views\web.config.install.xdt" target="content\Views\web.config.install.xdt" />
+    <file src="content\Views\web.config.uninstall.xdt" target="content\Views\web.config.uninstall.xdt" />
+    <file src="bin\Debug\WebEx.Core.dll" target="lib\net451\WebEx.Core.dll" />
+  </files>
+</package>

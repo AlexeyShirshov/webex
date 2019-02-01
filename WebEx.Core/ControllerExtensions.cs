@@ -200,7 +200,11 @@ namespace WebEx.Core
                 }
             }
 
-            return bestParams.Item1.Invoke(target, bestParams.Item2);
+            var ci = bestParams.Item1 as ConstructorInfo;
+            if (ci != null)
+                return ci.Invoke(bestParams.Item2);
+            else
+                return bestParams.Item1.Invoke(target, bestParams.Item2);
         }
 
         #region LoadModule
