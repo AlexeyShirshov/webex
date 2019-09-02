@@ -599,6 +599,7 @@ namespace WebEx.Core
                 if (string.IsNullOrEmpty(realViewName) || realViewName == Contracts.DefaultView)
                     realViewName = "index";
 
+                l3:
                 if (!string.IsNullOrEmpty(moduleFolder))
                 {
                     string val = null;
@@ -616,6 +617,11 @@ namespace WebEx.Core
                         renderedViewName = viewNameInner;
 
                         return true;
+                    }
+                    else if (curView.IsAuto() && "." + realViewName == extView)
+                    {
+                        realViewName = "index";
+                        goto l3;
                     }
                     else if (curView.IsDefault() || (curView.IsAuto() && curView != null && (string.IsNullOrEmpty(curView.Value) || curView.Value == Contracts.DefaultView)))
                     {
@@ -668,6 +674,11 @@ namespace WebEx.Core
                             preRenderFilters, postRenderFilters);
                         renderedViewName = viewName;
                         return true;
+                    }
+                    else if (curView.IsAuto() && "." + realViewName == extView)
+                    {
+                        realViewName = "index";
+                        goto l3;
                     }
                     else if (view.IsDefault())
                     {
@@ -989,7 +1000,9 @@ namespace WebEx.Core
             {
                 if (item.view.IsAuto())
                 {
-                    (item.view as ModuleAutoView).Ext = "." + viewType;
+                    var av = (item.view as ModuleAutoView);
+                    //av.Value = string.Empty;
+                    av.Ext = "." + viewType;
                 }
                 var r = helper.RenderModuleInternal(item.module.Inner, null, item.view, null, null, item.module, null, preRenderFilters, postRenderFilters);
                 if (r != null)

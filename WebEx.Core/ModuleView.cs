@@ -57,6 +57,10 @@ namespace WebEx.Core
             {
                 return _str;
             }
+            internal set
+            {
+                _str = value;
+            }
         }
         internal string Ext
         {
