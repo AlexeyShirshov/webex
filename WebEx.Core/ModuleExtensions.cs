@@ -96,6 +96,13 @@ namespace WebEx.Core
                 throw new ArgumentNullException(nameof(storage));
             storage[WebExModuleExtensions.MakeViewDataKey(r.GetType())] = new CachedModule(r);
         }
+        public static string GetExt(this IModuleView view)
+        {
+            var v = view as ModuleAutoView;
+            if (v != null && (v.Type == Contracts.CSSView || v.Type == Contracts.JavascriptView))
+                return "." + v.Type;
 
+            return null;
+        }
     }
 }

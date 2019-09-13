@@ -47,8 +47,9 @@ namespace WebEx.Core
         private string _str;
         private string _ext = string.Empty;
         public ModuleAutoView() { }
-        public ModuleAutoView(string viewName)
+        public ModuleAutoView(string type, string viewName)
         {
+            _ext = type;
             _str = viewName;
         }
         public string Value
@@ -62,7 +63,7 @@ namespace WebEx.Core
                 _str = value;
             }
         }
-        internal string Ext
+        public string Type
         {
             get
             {

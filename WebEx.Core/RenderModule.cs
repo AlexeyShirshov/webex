@@ -210,9 +210,11 @@ namespace WebEx.Core
                         if (cm != null)
                             cm.Folder = System.IO.Path.GetDirectoryName(viewName);
 
-                        var cssViewName = viewName.Replace(extension, "css." + extension);
-                        if ((cm == null || cm.GetView(Contracts.CSSView, helper) == null /*|| cm.GetView(Contracts.CSSView, helper).IsAuto()*/))
+                        var mviews = cm?.GetViews(Contracts.CSSView, view?.Value, helper);
+                        if (mviews == null || !mviews.Any())
                         {
+                            var cssViewName = viewName.Replace(extension, "css." + extension);
+
                             if (helper.IsPartialViewExists(cssViewName, model))
                                 helper.RegisterInlineModule(Contracts.CSSView, cssViewName, model, args, moduleInstanceId);
                             else
@@ -253,10 +255,16 @@ namespace WebEx.Core
                                 }
                             }
                         }
-
-                        var jsViewName = viewName.Replace(extension, "js." + extension);
-                        if ((cm == null || cm.GetView(Contracts.JavascriptView, helper) == null /*|| cm.GetView(Contracts.JavascriptView, helper).IsAuto()*/))
+                        else if (cm != null)
                         {
+                            cm.AddView(Contracts.CSSView, view?.Value);
+                        }
+
+                        mviews = cm?.GetViews(Contracts.JavascriptView, view?.Value, helper);
+                        if (mviews == null || !mviews.Any())
+                        {
+                            var jsViewName = viewName.Replace(extension, "js." + extension);
+
                             if (helper.IsPartialViewExists(jsViewName, model))
                                 helper.RegisterInlineModule(Contracts.JavascriptView, jsViewName, model, args, moduleInstanceId);
                             else
@@ -296,6 +304,10 @@ namespace WebEx.Core
                                     }
                                 }
                             }
+                        }
+                        else if (cm != null)
+                        {
+                            cm.AddView(Contracts.JavascriptView, view?.Value);
                         }
                     }
 
@@ -590,10 +602,7 @@ namespace WebEx.Core
                 else if (curView != null)
                 {
                     realViewName = curView.Value;
-                    if (curView.IsAuto())
-                    {
-                        extView = (curView as ModuleAutoView).Ext;
-                    }
+                    extView = curView.GetExt();
                 }
 
                 if (string.IsNullOrEmpty(realViewName) || realViewName == Contracts.DefaultView)
@@ -710,10 +719,7 @@ namespace WebEx.Core
                             else if (view != null)
                             {
                                 realViewName = view.Value;
-                                if (view.IsAuto())
-                                {
-                                    extView = (view as ModuleAutoView).Ext;
-                                }
+                                extView = curView.GetExt();
                             }
 
                             if (string.IsNullOrEmpty(realViewName) || realViewName == Contracts.DefaultView)
@@ -766,7 +772,15 @@ namespace WebEx.Core
             if (module == null)
                 throw new ArgumentNullException(nameof(module));
 
-            return helper.RenderModule(module, null, module.GetView(view, helper), model, moduleInstanceId, preRenderFilters, postRenderFilters);
+            var sb = new StringBuilder();
+            foreach (var mview in module.GetViews(Contracts.DefaultView, view, helper))
+            {
+                var r = helper.RenderModule(module, null, mview, model, moduleInstanceId, preRenderFilters, postRenderFilters);
+                if (r != null)
+                    sb.Append(r.ToString());
+            }
+
+            return MvcHtmlString.Create(sb.ToString());
         }
         #endregion
 
@@ -778,6 +792,10 @@ namespace WebEx.Core
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string view, object moduleModel = null, string moduleInstanceId = null)
         {
             return helper.RenderModule(moduleName, (IDictionary<string, object>)null, view, moduleModel, false, moduleInstanceId);
+        }
+        public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, string viewType, string view, object moduleModel = null, string moduleInstanceId = null)
+        {
+            return helper.RenderModule(moduleName, (IDictionary<string, object>)null, view, moduleModel, false, moduleInstanceId, viewType: viewType);
         }
         public static MvcHtmlString RenderModule(this HtmlHelper helper, string moduleName, object moduleModel, string moduleInstanceId = null)
         {
@@ -796,14 +814,15 @@ namespace WebEx.Core
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
-            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+            IEnumerable<IPostRenderFilter> postRenderFilters = null,
+            string viewType = Contracts.DefaultView)
         {
             bool found;
-            var r = helper.RenderModule(moduleName, args, out found, null, view, moduleModel, ignoreCase, moduleInstanceId, preRenderFilters, postRenderFilters);
+            var r = helper.RenderModule(moduleName, args, out found, null, view, moduleModel, ignoreCase, moduleInstanceId, preRenderFilters, postRenderFilters, viewType);
 
             if (!found)
             {
-                r = helper.RenderNonModule(moduleName, args, view, moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+                r = helper.RenderNonModule(moduleName, args, view, moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters, viewType);
             }
             return r;
         }
@@ -849,7 +868,8 @@ namespace WebEx.Core
             string view = null, object moduleModel = null,
             bool ignoreCase = false, string moduleInstanceId = null,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
-            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+            IEnumerable<IPostRenderFilter> postRenderFilters = null,
+            string viewType = Contracts.DefaultView)
         {
             var mt = ModulesCatalog.GetModule(helper.ViewContext.HttpContext.Application, moduleName, ignoreCase);
             if (mt != null)
@@ -862,10 +882,18 @@ namespace WebEx.Core
                     {
                         found = true;
 
-                        if (string.IsNullOrEmpty(view))
-                            view = Contracts.DefaultView;
+                        //if (string.IsNullOrEmpty(view))
+                        //    view = Contracts.DefaultView;
 
-                        return helper.RenderModule(mt, m, args, moduleFolder, m.GetView(view, helper), moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+                        var sb = new StringBuilder();
+                        foreach (var mview in m.GetViews(viewType, view, helper))
+                        {
+                            var r = helper.RenderModule(mt, m, args, moduleFolder, mview, moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+                            if (r != null)
+                                sb.Append(r.ToString());
+                        }
+
+                        return MvcHtmlString.Create(sb.ToString());
                     }
                 }
             }
@@ -902,9 +930,10 @@ namespace WebEx.Core
             string view = null, object moduleModel = null,
             string moduleInstanceId = null,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
-            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+            IEnumerable<IPostRenderFilter> postRenderFilters = null,
+            string viewType = Contracts.DefaultView)
         {
-            return helper.RenderNonModule(moduleName, args, new ModuleAutoView(view), moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
+            return helper.RenderNonModule(moduleName, args, new ModuleAutoView(viewType, view), moduleModel, moduleInstanceId, preRenderFilters, postRenderFilters);
         }
 
         private static MvcHtmlString RenderNonModule(this HtmlHelper helper, string moduleName, IDictionary<string, object> args,
@@ -977,7 +1006,15 @@ namespace WebEx.Core
                         postFilters.Add(postFilter);
                     }
 
-                    return helper.RenderModuleInternal(m.Inner, args, m.GetView(view, helper), null, moduleInstanceId, m, null, preFilters, postFilters);
+                    var sb = new StringBuilder();
+                    foreach (var mview in m.GetViews(Contracts.DefaultView, view, helper))
+                    {
+                        var r = helper.RenderModuleInternal(m.Inner, args, mview, null, moduleInstanceId, m, null, preFilters, postFilters);
+                        if (r != null)
+                            sb.Append(r.ToString());
+                    }
+
+                    return MvcHtmlString.Create(sb.ToString());
                 }
                 //else
                 //    return helper.RenderModuleManual(GetModuleFolder(module), res, view);
@@ -993,20 +1030,24 @@ namespace WebEx.Core
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
             var sb = new StringBuilder();
-            foreach (var item in WebExHtmlExtensions._GetModules(helper.GetStorage()).Select(it => new { module = it, view = it.GetView(viewType, helper) }).
-                Where(it => it.view != null).
+            foreach (var item in WebExHtmlExtensions._GetModules(helper.GetStorage()).Select(it => new { module = it, views = it.GetViews(viewType) }).
+                Where(it => it.views != null && it.views.Any()).
                 OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it.module.Inner)).
                 ThenBy(it => it.module.Inner, new DependencyComparer(helper.ViewContext.HttpContext.Application)))
             {
-                if (item.view.IsAuto())
+                //if (item.view.IsAuto())
+                //{
+                //    var av = (item.view as ModuleAutoView);
+                //    //av.Value = string.Empty;
+                //    av.Ext = "." + viewType;
+                //}
+                foreach (var view in item.views.SelectMany(it=>item.module.GetViews(viewType, it, helper)))
                 {
-                    var av = (item.view as ModuleAutoView);
-                    //av.Value = string.Empty;
-                    av.Ext = "." + viewType;
+
+                    var r = helper.RenderModuleInternal(item.module.Inner, null, view, null, null, item.module, null, preRenderFilters, postRenderFilters);
+                    if (r != null)
+                        sb.Append(r.ToString());
                 }
-                var r = helper.RenderModuleInternal(item.module.Inner, null, item.view, null, null, item.module, null, preRenderFilters, postRenderFilters);
-                if (r != null)
-                    sb.Append(r.ToString());
             }
 
             foreach (var item in helper.GetInlineModules(viewType))
@@ -1043,9 +1084,12 @@ namespace WebEx.Core
             var sb = new StringBuilder();
             foreach (var module in modules)
             {
-                var r = helper.RenderModule(module, args, module.GetView(view, helper), null, null, preRenderFilters, postRenderFilters);
-                if (r != null)
-                    sb.Append(r.ToString());
+                foreach (var mview in module.GetViews(Contracts.DefaultView, view, helper))
+                {
+                    var r = helper.RenderModule(module, args, mview, null, null, preRenderFilters, postRenderFilters);
+                    if (r != null)
+                        sb.Append(r.ToString());
+                }
             }
             return MvcHtmlString.Create(sb.ToString());
         }
@@ -1064,7 +1108,8 @@ namespace WebEx.Core
             IDictionary<string, object> args = null,
             string view = null,
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
-            IEnumerable<IPostRenderFilter> postRenderFilters = null)
+            IEnumerable<IPostRenderFilter> postRenderFilters = null,
+            string viewType = Contracts.DefaultView)
         {
             var folders = new List<string>();
             folders.Add("~/Views/" + ModulesFolder);
@@ -1087,11 +1132,11 @@ namespace WebEx.Core
                         var moduleName = System.IO.Path.GetFileName(module);
                         var modulePath = System.IO.Path.Combine(moduleFolder, moduleName);
                         bool found;
-                        var r = helper.RenderModule(moduleName, args, out found, modulePath, view, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters);
+                        var r = helper.RenderModule(moduleName, args, out found, modulePath, view, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters, viewType: viewType);
 
                         if (!found)
                         {
-                            r = helper.RenderNonModule(modulePath, args, view, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters);
+                            r = helper.RenderNonModule(modulePath, args, view, preRenderFilters: preRenderFilters, postRenderFilters: postRenderFilters, viewType: viewType);
                         }
 
                         if (r != null)
