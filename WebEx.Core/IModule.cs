@@ -63,6 +63,7 @@ namespace WebEx.Core
         }
 
         public string Folder { get; set; }
+        internal bool RenderedOnce { get; set; }
 
         internal void AddView(string type, string value)
         {

@@ -106,7 +106,10 @@ namespace WebEx.Core
                 appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
             }
         }
-
+        public static IEnumerable<Type> GetRegisteredModules(HttpApplicationState appState)
+        {
+            return appState[ModulesCatalog._webexInternalModuleTypes] as IEnumerable<Type> ?? new Type [] { };
+        }
         public static string GetModuleName(Type type)
         {
             var attr = type.GetCustomAttribute<ModuleAliasAttribute>();

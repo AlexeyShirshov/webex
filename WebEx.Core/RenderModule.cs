@@ -208,7 +208,21 @@ namespace WebEx.Core
                     if (!string.IsNullOrEmpty(viewName) && !mainViewDidntRender)
                     {
                         if (cm != null)
+                        {
                             cm.Folder = System.IO.Path.GetDirectoryName(viewName);
+
+                            if (!cm.RenderedOnce)
+                            {
+                                cm.RenderedOnce = true;
+                                var onceViewName = viewName.Replace(extension, "once." + extension);
+                                if (helper.IsPartialViewExists(onceViewName, null))
+                                {
+                                    var r = helper.Partial(onceViewName);
+                                    if (r != null)
+                                        res = new MvcHtmlString(res.ToString() + r.ToString());
+                                }
+                            }
+                        }
 
                         var mviews = cm?.GetViews(Contracts.CSSView, view?.Value, helper);
                         if (mviews == null || !mviews.Any())
@@ -401,6 +415,20 @@ namespace WebEx.Core
                                 if (helper.IsPartialViewExists(viewOnce, model))
                                 {
                                     helper.RegisterInlineModule(Contracts.JavascriptView, viewOnce, model, args, moduleInstanceId);
+                                }
+                            }
+
+                            object o;
+                            var key = "webex:renderonce:" + viewPath;
+                            if (!helper.GetStorage().TryGetValue(key, out o) || !Convert.ToBoolean(o))
+                            {
+                                helper.GetStorage()[key] = true;
+                                var onceViewName = viewPath.Replace(extension, "once." + extension);
+                                if (helper.IsPartialViewExists(onceViewName, null))
+                                {
+                                    var r = helper.Partial(onceViewName, null);
+                                    if (r != null)
+                                        res = new MvcHtmlString(res.ToString() + r.ToString());
                                 }
                             }
                         }
@@ -942,6 +970,9 @@ namespace WebEx.Core
             IEnumerable<IPreRenderFilter> preRenderFilters = null,
             IEnumerable<IPostRenderFilter> postRenderFilters = null)
         {
+            if (string.IsNullOrEmpty(moduleName))
+                return null;
+
             string mp = null;
             var r = helper.RenderModuleOrPartialViewWithCSSAndJSViews(moduleName, view, null, moduleModel, moduleInstanceId, args, mp, preRenderFilters, postRenderFilters);
             if (r == null && !moduleName.StartsWith("~", StringComparison.Ordinal))

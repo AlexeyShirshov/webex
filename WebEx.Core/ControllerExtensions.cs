@@ -180,6 +180,10 @@ namespace WebEx.Core
                                     {
                                     }
                                 }
+                                else if (candidate.Item2.Length == candidate.Item3.Length)
+                                {
+                                    j++;
+                                }
                             }
                         }
                     }
