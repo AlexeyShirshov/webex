@@ -42,7 +42,7 @@ namespace WebEx.Core
     internal class CachedModule
     {
         private readonly IModule _inner;
-        private readonly List<Tuple<string,string>> _views = new List<Tuple<string, string>>();
+        private readonly List<Tuple<string,string, int>> _views = new List<Tuple<string, string, int>>();
 
         internal CachedModule(IModule inner)
         {
@@ -65,16 +65,16 @@ namespace WebEx.Core
         public string Folder { get; set; }
         internal bool RenderedOnce { get; set; }
 
-        internal void AddView(string type, string value)
+        internal void AddView(string type, string value, int runAfter = -1)
         {
             if (!_views.Any(it => it.Item1 == type && it.Item2 == value))
-                _views.Add(new Tuple<string, string>(type, value));
+                _views.Add(new Tuple<string, string, int>(type, value, runAfter));
         }
-        internal IEnumerable<string> GetViews(string type)
+        internal IEnumerable<string> GetViews(string type, int runAfter = -1)
         {
             return from k in _views
-                   where k.Item1 == type
-                   select k.Item2;
+                   where k.Item1 == type && k.Item3 == runAfter
+                   select k.Item2;        
         }
     }
 }

@@ -202,10 +202,12 @@ namespace WebEx.Core
                 MvcHtmlString res;
                 string viewName;
                 bool mainViewDidntRender;
+                int modulesCnt = helper.GetInlineModulesCount();
+
                 if (RenderModuleMainView(helper, moduleFolder, view, model, extension, out res, moduleInstanceId, args, out viewName, out mainViewDidntRender, mp, 
                     preRenderFilters, postRenderFilters))
                 {
-                    if (!string.IsNullOrEmpty(viewName) && !mainViewDidntRender)
+                    if (!string.IsNullOrEmpty(viewName) && !mainViewDidntRender && (!view.IsAuto() || !(new [] { Contracts.CSSView,Contracts.JavascriptView}).Any(it=> (view as ModuleAutoView).Type == it)))
                     {
                         if (cm != null)
                         {
@@ -321,7 +323,13 @@ namespace WebEx.Core
                         }
                         else if (cm != null)
                         {
-                            cm.AddView(Contracts.JavascriptView, view?.Value);
+                            int runAfter = -1;
+                            int cnt = helper.GetInlineModulesCount();
+                            if (modulesCnt < cnt)
+                            {
+                                runAfter = cnt;
+                            }
+                            cm.AddView(Contracts.JavascriptView, view?.Value, runAfter);
                         }
                     }
 
@@ -1081,14 +1089,31 @@ namespace WebEx.Core
                 }
             }
 
+            int idx = 0;
             foreach (var item in helper.GetInlineModules(viewType))
             {
+                idx++;
+
                 using (new AutoCleanup(() => helper.PrepareRender(item.Item4, item.Item1, item.Item3), () => helper.CleanupRender(item.Item4)))
                 {
                     var r = helper.Partial(item.Item1, item.Item2);
                     if (r != null)
                         sb.Append(r.ToString());
                 }
+
+                foreach (var item2 in WebExHtmlExtensions._GetModules(helper.GetStorage()).Select(it => new { module = it, views = it.GetViews(viewType, idx) }).
+                    Where(it => it.views != null && it.views.Any()).
+                    OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it.module.Inner)).
+                    ThenBy(it => it.module.Inner, new DependencyComparer(helper.ViewContext.HttpContext.Application)))
+                {
+                    foreach (var view in item2.views.SelectMany(it => item2.module.GetViews(viewType, it, helper)))
+                    {
+
+                        var r = helper.RenderModuleInternal(item2.module.Inner, null, view, null, null, item2.module, null, preRenderFilters, postRenderFilters);
+                        if (r != null)
+                            sb.Append(r.ToString());
+                    }
+                }                
                 
             }
             return MvcHtmlString.Create(sb.ToString());

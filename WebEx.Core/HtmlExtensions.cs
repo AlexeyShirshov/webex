@@ -74,6 +74,15 @@ namespace WebEx.Core
                 }
             }
         }
+        public static int GetInlineModulesCount(this HtmlHelper helper)
+        {
+            object res;
+            if (!helper.GetStorage().TryGetValue(_webexInternalInlineModuleInstances, out res))
+            {
+                res = new InlineModuleModel[] { };
+            }
+            return (res as IEnumerable<InlineModuleModel>).Count();
+        }
         public static IEnumerable<Tuple<string, object, IDictionary<string, object>, string>> GetInlineModules(this HtmlHelper helper, string type)
         {
             object res;
