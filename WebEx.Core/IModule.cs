@@ -41,8 +41,23 @@ namespace WebEx.Core
 
     internal class CachedModule
     {
+        class ViewParams
+        {
+            public string Type;
+            public string Value;
+            public IDictionary<string, object> Args;
+            public int RunAfter;
+
+            public ViewParams(string type, string value, IDictionary<string, object> args, int runAfter)
+            {
+                Type = type;
+                Value = value;
+                Args = args;
+                RunAfter = runAfter;
+            }
+        }
         private readonly IModule _inner;
-        private readonly List<Tuple<string,string, int>> _views = new List<Tuple<string, string, int>>();
+        private readonly List<ViewParams> _views = new List<ViewParams>();
 
         internal CachedModule(IModule inner)
         {
@@ -65,16 +80,16 @@ namespace WebEx.Core
         public string Folder { get; set; }
         internal bool RenderedOnce { get; set; }
 
-        internal void AddView(string type, string value, int runAfter = -1)
+        internal void AddView(string type, string value, IDictionary<string, object> args, int runAfter = -1)
         {
-            if (!_views.Any(it => it.Item1 == type && it.Item2 == value))
-                _views.Add(new Tuple<string, string, int>(type, value, runAfter));
+            if (!_views.Any(it => it.Type == type && it.Value == value))
+                _views.Add(new ViewParams(type, value, args, runAfter));
         }
-        internal IEnumerable<string> GetViews(string type, int runAfter = -1)
+        internal IEnumerable<Tuple<string, IDictionary<string, object>>> GetViews(string type, int runAfter = -1)
         {
             return from k in _views
-                   where k.Item1 == type && k.Item3 == runAfter
-                   select k.Item2;        
+                   where k.Type == type && k.RunAfter == runAfter
+                   select new Tuple<string, IDictionary<string, object>>(k.Value, k.Args);        
         }
     }
 }

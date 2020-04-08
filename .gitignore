@@ -12,3 +12,10 @@
 /.vs/webex/v15/sqlite3/db.lock
 /.vs/webex/v15/sqlite3/storage.ide-shm
 /.vs/webex/v15/sqlite3/storage.ide-wal
+/.vs/webex/v16/Server/sqlite3
+/.vs/webex/v16/sqlite3/db.lock
+/.vs/webex/v16/sqlite3/storage.ide-shm
+/.vs/webex/v16/sqlite3/storage.ide-wal
+/.vs/webex/v16
+/WebEx.Core/obj/Release
+/WebEx.Auth/obj/Release

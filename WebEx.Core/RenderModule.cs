@@ -273,7 +273,7 @@ namespace WebEx.Core
                         }
                         else if (cm != null)
                         {
-                            cm.AddView(Contracts.CSSView, view?.Value);
+                            cm.AddView(Contracts.CSSView, view?.Value, args);
                         }
 
                         mviews = cm?.GetViews(Contracts.JavascriptView, view?.Value, helper);
@@ -329,7 +329,7 @@ namespace WebEx.Core
                             {
                                 runAfter = cnt;
                             }
-                            cm.AddView(Contracts.JavascriptView, view?.Value, runAfter);
+                            cm.AddView(Contracts.JavascriptView, view?.Value, args, runAfter);
                         }
                     }
 
@@ -1080,10 +1080,9 @@ namespace WebEx.Core
                 //    //av.Value = string.Empty;
                 //    av.Ext = "." + viewType;
                 //}
-                foreach (var view in item.views.SelectMany(it=>item.module.GetViews(viewType, it, helper)))
+                foreach (var vp in item.views.SelectMany(it=> item.module.GetViews(viewType, it.Item1, helper).Select(it2=> new { view = it2, args = it.Item2 })))
                 {
-
-                    var r = helper.RenderModuleInternal(item.module.Inner, null, view, null, null, item.module, null, preRenderFilters, postRenderFilters);
+                    var r = helper.RenderModuleInternal(item.module.Inner, vp.args, vp.view, null, null, item.module, null, preRenderFilters, postRenderFilters);
                     if (r != null)
                         sb.Append(r.ToString());
                 }
@@ -1106,10 +1105,10 @@ namespace WebEx.Core
                     OrderBy(it => getOrderWeight == null ? 0 : getOrderWeight(it.module.Inner)).
                     ThenBy(it => it.module.Inner, new DependencyComparer(helper.ViewContext.HttpContext.Application)))
                 {
-                    foreach (var view in item2.views.SelectMany(it => item2.module.GetViews(viewType, it, helper)))
+                    foreach (var vp in item2.views.SelectMany(it => item2.module.GetViews(viewType, it.Item1, helper).Select(it2 => new { view = it2, args = it.Item2 })))
                     {
 
-                        var r = helper.RenderModuleInternal(item2.module.Inner, null, view, null, null, item2.module, null, preRenderFilters, postRenderFilters);
+                        var r = helper.RenderModuleInternal(item2.module.Inner, vp.args, vp.view, null, null, item2.module, null, preRenderFilters, postRenderFilters);
                         if (r != null)
                             sb.Append(r.ToString());
                     }

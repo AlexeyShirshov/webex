@@ -14,7 +14,6 @@ F:\projects\webex\WebEx.Core\bin\Release\System.Web.WebPages.xml
 F:\projects\webex\WebEx.Core\bin\Release\System.Web.WebPages.Deployment.xml
 F:\projects\webex\WebEx.Core\bin\Release\System.Web.WebPages.Razor.xml
 F:\projects\webex\WebEx.Core\obj\Release\WebEx.Core.csprojAssemblyReference.cache
-F:\projects\webex\WebEx.Core\obj\Release\WebEx.Core.csproj.CoreCompileInputs.cache
 F:\projects\webex\WebEx.Core\obj\Release\WebEx.Core.csproj.CopyComplete
 F:\projects\webex\WebEx.Core\obj\Release\WebEx.Core.dll
 F:\projects\webex\WebEx.Core\obj\Release\WebEx.Core.pdb
