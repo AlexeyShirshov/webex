@@ -15,6 +15,7 @@ namespace WebEx.Core
         {
             _modules = moduleNames;
         }
+        public string ExcludeMethods { get; set; }
         public void OnActionExecuted(ActionExecutedContext filterContext)
         {
             //do nothing
@@ -22,6 +23,14 @@ namespace WebEx.Core
 
         public void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            if (!string.IsNullOrEmpty(ExcludeMethods))
+            {
+                if (ExcludeMethods.Split(',').Select(it=>it.ToLower()).Contains(filterContext.ActionDescriptor.ActionName.ToLower()))
+                {
+                    return;
+                }
+            }
+
             if (_modules != null && _modules.Any())
             {
                 foreach (var moduleName in _modules)
