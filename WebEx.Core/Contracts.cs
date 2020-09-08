@@ -10,6 +10,7 @@ namespace WebEx.Core
     {
         public const string JavascriptView = "js";
         public const string CSSView = "css";
+        public const string OnceView = "once";
         public const string DefaultView = "webex:defaultview";
     }
 }

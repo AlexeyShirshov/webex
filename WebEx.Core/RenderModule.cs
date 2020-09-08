@@ -216,13 +216,21 @@ namespace WebEx.Core
                             if (!cm.RenderedOnce)
                             {
                                 cm.RenderedOnce = true;
-                                var onceViewName = viewName.Replace(extension, "once." + extension);
+                                var onceViewName = viewName.Replace(extension, "-once." + extension);
                                 if (helper.IsPartialViewExists(onceViewName, null))
                                 {
                                     var r = helper.Partial(onceViewName);
                                     if (r != null)
                                         res = new MvcHtmlString(res.ToString() + r.ToString());
                                 }
+                            }
+                        }
+                        else
+                        {
+                            var onceViewName = viewName.Replace(extension, "-once." + extension);
+                            if (helper.IsPartialViewExists(onceViewName, null))
+                            {
+                                helper.RegisterInlineModule(Contracts.OnceView, onceViewName, model, args, moduleInstanceId);
                             }
                         }
 

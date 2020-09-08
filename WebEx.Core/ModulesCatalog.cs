@@ -102,8 +102,12 @@ namespace WebEx.Core
             appState[_webexInternalModuleTypes] = modules;
             foreach (var type in modules)
             {
-                string alias = GetModuleName(type);
-                appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
+                var attr = type.GetCustomAttribute<DynamicLoadAttribute>();
+                if (attr?.ShouldLoad??true)
+                {
+                    string alias = GetModuleName(type);
+                    appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
+                }
             }
         }
         public static IEnumerable<Type> GetRegisteredModules(HttpApplicationState appState)
