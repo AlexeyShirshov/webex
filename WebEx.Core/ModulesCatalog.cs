@@ -96,18 +96,32 @@ namespace WebEx.Core
             RegisterModules(appState, GetModules(), viewExtension);
 
         }
-        public static void RegisterModules(HttpApplicationState appState, Type[] modules, string viewExtension = null)
+        public static void RegisterModules(HttpApplicationState appState, Type[] types, string viewExtension = null)
         {
             appState[WebExHtmlRenderModuleExtensions.webexViewExtension] = viewExtension;
-            appState[_webexInternalModuleTypes] = modules;
-            foreach (var type in modules)
+            var modules = new List<Tuple<string,Type>>();
+            foreach (var type in types)
             {
                 var attr = type.GetCustomAttribute<DynamicLoadAttribute>();
-                if (attr?.ShouldLoad??true)
+                if (attr?.ShouldLoad ?? true)
                 {
                     string alias = GetModuleName(type);
-                    appState[MakeAliasViewDataKey(alias)] = type.AssemblyQualifiedName;
+                    var exists = modules.FirstOrDefault(it => it.Item1 == alias);
+                    if (exists == null)
+                    {
+                        modules.Add(new Tuple<string, Type>(alias, type));
+                    }
+                    else if (type.IsSubclassOf(exists.Item2))
+                    {
+                        modules.Remove(exists);
+                        modules.Add(new Tuple<string, Type>(alias, type));
+                    }                    
                 }
+            }
+            appState[_webexInternalModuleTypes] = modules.Select(it=>it.Item2).ToArray();
+            foreach (var module in modules)
+            {                
+                appState[MakeAliasViewDataKey(module.Item1)] = module.Item2.AssemblyQualifiedName;
             }
         }
         public static IEnumerable<Type> GetRegisteredModules(HttpApplicationState appState)
