@@ -102,8 +102,8 @@ namespace WebEx.Core
             var modules = new List<Tuple<string,Type>>();
             foreach (var type in types)
             {
-                var attr = type.GetCustomAttribute<DynamicLoadAttribute>();
-                if (attr?.ShouldLoad ?? true)
+                var attr = type.GetCustomAttribute<DynamicRegisterAttribute>();
+                if (attr?.ShouldRegister ?? true)
                 {
                     string alias = GetModuleName(type);
                     var exists = modules.FirstOrDefault(it => it.Item1 == alias);

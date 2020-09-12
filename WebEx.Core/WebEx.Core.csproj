@@ -72,7 +72,7 @@
     <Compile Include="Contracts.cs" />
     <Compile Include="ControllerExtensions.cs" />
     <Compile Include="AliasAttribute.cs" />
-    <Compile Include="DynamicLoadAttribute.cs" />
+    <Compile Include="DynamicRegisterAttribute.cs" />
     <Compile Include="IRenderFilter.cs" />
     <Compile Include="ModuleActionFilter.cs" />
     <Compile Include="ModuleInstance.cs" />

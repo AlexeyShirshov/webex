@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace WebEx.Core
 {
     [AttributeUsage(AttributeTargets.Class, Inherited=true)]
-    public abstract class DynamicLoadAttribute : Attribute
+    public abstract class DynamicRegisterAttribute : Attribute
     {
         // Properties
-        public abstract bool ShouldLoad { get; }
+        public abstract bool ShouldRegister { get; }
     }
 }
