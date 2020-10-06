@@ -219,9 +219,10 @@ namespace WebEx.Core
                                 var onceViewName = viewName.Replace(extension, "-once." + extension);
                                 if (helper.IsPartialViewExists(onceViewName, null))
                                 {
-                                    var r = helper.Partial(onceViewName);
-                                    if (r != null)
-                                        res = new MvcHtmlString(res.ToString() + r.ToString());
+                                    //var r = helper.Partial(onceViewName);
+                                    //if (r != null)
+                                    //    res = new MvcHtmlString(res.ToString() + r.ToString());
+                                    cm.AddView(Contracts.OnceView, view?.Value, args);
                                 }
                             }
                         }

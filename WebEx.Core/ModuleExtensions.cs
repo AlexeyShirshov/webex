@@ -99,8 +99,11 @@ namespace WebEx.Core
         public static string GetExt(this IModuleView view)
         {
             var v = view as ModuleAutoView;
-            if (v != null && (v.Type == Contracts.CSSView || v.Type == Contracts.JavascriptView))
-                return "." + v.Type;
+            if (v != null)
+                if (v.Type == Contracts.CSSView || v.Type == Contracts.JavascriptView)
+                    return "." + v.Type;
+                else if (v.Type == Contracts.OnceView)
+                    return ".-once";
 
             return null;
         }
